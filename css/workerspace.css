@@ -1,0 +1,160 @@
+/* ==============================
+   Dashboard General
+   ============================== */
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background-color: #f2f2f2; /* Gris claro */
+    color: #333; /* Texto principal */
+    margin: 0;
+    padding: 0;
+}
+
+/* ==============================
+   Contenedores
+   ============================== */
+.container {
+    width: 90%;
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+.card {
+    background-color: #fff;
+    border-radius: 12px;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+    padding: 20px;
+    margin-bottom: 20px;
+}
+
+/* ==============================
+   Títulos y encabezados
+   ============================== */
+h1, h2, h3, h4 {
+    color: #222;
+    margin: 0 0 10px 0;
+}
+
+h1 {
+    font-size: 28px;
+}
+
+h2 {
+    font-size: 22px;
+}
+
+/* ==============================
+   Botones
+   ============================== */
+button {
+    padding: 10px 20px;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 16px;
+    transition: background-color 0.3s;
+}
+
+button.primary {
+    background-color: #007bff; /* Azul neutral */
+    color: #fff;
+}
+
+button.primary:hover {
+    background-color: #0056b3;
+}
+
+button.secondary {
+    background-color: #6c757d; /* Gris neutral */
+    color: #fff;
+}
+
+button.secondary:hover {
+    background-color: #5a6268;
+}
+
+button.orange {
+    background-color: #ff7f00; /* Naranja */
+    color: #fff;
+}
+
+button.orange:hover {
+    background-color: #e76a00;
+}
+
+/* ==============================
+   Inputs y formularios
+   ============================== */
+input, select, textarea {
+    width: 100%;
+    padding: 10px;
+    margin-bottom: 15px;
+    border-radius: 8px;
+    border: 1px solid #ccc;
+    font-size: 16px;
+    box-sizing: border-box;
+}
+
+input:focus, select:focus, textarea:focus {
+    border-color: #007bff;
+    outline: none;
+}
+
+/* ==============================
+   Tablas
+   ============================== */
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 20px;
+}
+
+th, td {
+    text-align: left;
+    padding: 12px;
+    border-bottom: 1px solid #ddd;
+}
+
+th {
+    background-color: #f8f8f8;
+}
+
+/* ==============================
+   Destacados en naranja
+   ============================== */
+.highlight {
+    color: #ff7f00; /* Naranja */
+    font-weight: bold;
+}
+
+.badge-orange {
+    background-color: #ff7f00;
+    color: #fff;
+    padding: 5px 10px;
+    border-radius: 12px;
+    font-size: 14px;
+}
+
+/* ==============================
+   Barra de navegación simple
+   ============================== */
+.navbar {
+    background-color: #fff;
+    padding: 15px 20px;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-radius: 0 0 12px 12px;
+}
+
+.navbar a {
+    text-decoration: none;
+    color: #333;
+    margin-left: 15px;
+    font-weight: 500;
+}
+
+.navbar a:hover {
+    color: #007bff;
+}
