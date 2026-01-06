@@ -41,7 +41,7 @@ class Vehiculo {
         $this->idCategoria = $datos['idCategoria'] ?? null;
         $this->idEstado = $datos['idEstado'] ?? null;
         $this->plazaParking = $datos['plazaParking'] ?? null;
-        $this->disponibilidad = $datos['disponibilidad'] ?? true;
+        $this->disponibilidad = isset($datos['disponibilidad']) ? ($datos['disponibilidad'] ? 1 : 0) : 0;
         $this->kmInicial = $datos['kmInicial'] ?? 0;
         $this->kmActual = $datos['kmActual'] ?? 0;
         $this->fechaUltimaRevision = $datos['fechaUltimaRevision'] ?? null;
@@ -54,7 +54,7 @@ class Vehiculo {
         $this->manipuladoPor = $datos['manipuladoPor'] ?? null;
     }
 
-    // Guardar nuevo vehículo en BD
+    // Guardar vehiculo
     public function guardar() {
         try {
             $stmt = $this->pdo->prepare("
@@ -99,7 +99,7 @@ class Vehiculo {
         }
     }
 
-    // Métodos de utilidad mínimos
+    
     public function esAlquilable(): bool {
         return in_array($this->idEstado, ['LIMPIO', 'SUCIO']) && $this->disponibilidad;
     }

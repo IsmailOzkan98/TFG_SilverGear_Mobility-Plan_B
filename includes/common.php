@@ -1,6 +1,7 @@
 <?php
 require_once 'db.php';
 
+
 //iniciar session
 if (session_status() === PHP_SESSION_NONE) {
     session_start();
@@ -108,15 +109,16 @@ function validarEmail($email) {
         return "El email es obligatorio.";
     }
 
-    // Validar formato correcto
+    
     if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
         return "Formato de email inválido.";
     }
 
-    return true; // Email válido
+    return true; 
 }
 
-// Actualiza la disponibilidad del vehículo según su estado
+//VEHICULO
+
 function actualizarDisponibilidadVehiculo(&$vehiculo) {
     switch ($vehiculo->idEstado) {
         case 'IMPRO':
@@ -134,7 +136,7 @@ function actualizarDisponibilidadVehiculo(&$vehiculo) {
     }
 }
 
-// Registrar acción en vehiculo_historial
+
 function registrarHistorialVehiculo(PDO $pdo, $matricula, $dniTrabajador, $accion, $descripcion = '') {
     $stmt = $pdo->prepare("
         INSERT INTO Vehiculo_Historial (idVehiculo, dniTrabajador, accion, descripcion, fechaHora)
@@ -149,7 +151,7 @@ function registrarHistorialVehiculo(PDO $pdo, $matricula, $dniTrabajador, $accio
     ]);
 }
 
-// Función para cambiar estado y actualizar disponibilidad + registrar historial
+
 function cambiarEstadoVehiculo(PDO $pdo, &$vehiculo, $nuevoEstado, $dniTrabajador, $descripcion = '') {
     $vehiculo->idEstado = $nuevoEstado;
     actualizarDisponibilidadVehiculo($vehiculo);
