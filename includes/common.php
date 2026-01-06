@@ -116,3 +116,50 @@ function validarEmail($email) {
     return true; // Email válido
 }
 
+// Actualiza la disponibilidad del vehículo según su estado
+function actualizarDisponibilidadVehiculo(&$vehiculo) {
+    switch ($vehiculo->idEstado) {
+        case 'IMPRO':
+        case 'BAJA':
+            $vehiculo->disponibilidad = false;
+            break;
+        case 'VENTAS':
+        case 'LIMPIO':
+        case 'SUCIO':
+            $vehiculo->disponibilidad = true;
+            break;
+        default:
+            $vehiculo->disponibilidad = false;
+            break;
+    }
+}
+
+// Registrar acción en vehiculo_historial
+function registrarHistorialVehiculo(PDO $pdo, $matricula, $dniTrabajador, $accion, $descripcion = '') {
+    $stmt = $pdo->prepare("
+        INSERT INTO Vehiculo_Historial (idVehiculo, dniTrabajador, accion, descripcion, fechaHora)
+        SELECT idVehiculo, :dniTrabajador, :accion, :descripcion, NOW() 
+        FROM Vehiculo WHERE matricula = :matricula
+    ");
+    $stmt->execute([
+        ':matricula' => $matricula,
+        ':dniTrabajador' => $dniTrabajador,
+        ':accion' => $accion,
+        ':descripcion' => $descripcion
+    ]);
+}
+
+// Función para cambiar estado y actualizar disponibilidad + registrar historial
+function cambiarEstadoVehiculo(PDO $pdo, &$vehiculo, $nuevoEstado, $dniTrabajador, $descripcion = '') {
+    $vehiculo->idEstado = $nuevoEstado;
+    actualizarDisponibilidadVehiculo($vehiculo);
+
+    $stmt = $pdo->prepare("UPDATE Vehiculo SET idEstado = :idEstado, disponibilidad = :disponibilidad WHERE matricula = :matricula");
+    $stmt->execute([
+        ':idEstado' => $vehiculo->idEstado,
+        ':disponibilidad' => $vehiculo->disponibilidad,
+        ':matricula' => $vehiculo->matricula
+    ]);
+
+    registrarHistorialVehiculo($pdo, $vehiculo->matricula, $dniTrabajador, "Cambio de estado a $nuevoEstado", $descripcion);
+}
