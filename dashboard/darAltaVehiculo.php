@@ -1,6 +1,9 @@
 <?php
 require_once '../includes/common.php';
+require_once '../includes/security.php';
+requireRole(['admin','mecanico']);
 require_once '../includes/Vehiculo.php';
+
 
 $pdo = getPDO();
 $mensaje = '';
@@ -83,7 +86,7 @@ $transmisiones = ['Manual','Automático'];
     <div class="navbar">
         <div>SilverGear Mobility - Panel Mecánico</div>
         <div>
-            <a href="panel_mecanico.php">Volver</a>
+            <a href="dashboard.php">Volver</a>
             <a href="../includes/logout.php">Cerrar sesion</a>
         </div>
     </div>

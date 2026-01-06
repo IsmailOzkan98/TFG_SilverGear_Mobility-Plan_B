@@ -1,6 +1,27 @@
 <?php
 require_once '../includes/common.php';
 
+// Iniciar sesión si no está iniciada
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
+
+// ------------------------
+// Redirección si ya está logueado
+// ------------------------
+if (isset($_SESSION['usuario']['rol'])) {
+    $rol = $_SESSION['usuario']['rol'];
+    if ($rol === 'cliente') {
+        header("Location: tiendaComprar.php");
+    } else {
+        header("Location: ../dashboard/dashboard.php");
+    }
+    exit;
+}
+
+// ------------------------
+// Lógica de login
+// ------------------------
 $error = "";
 
 if ($_SERVER["REQUEST_METHOD"] === "POST") {
@@ -16,20 +37,26 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
         $pdo = getPDO();
 
         $stmt = $pdo->prepare("
-            SELECT u.idUsuario, u.contrasena, r.nombreRol
+            SELECT u.idUsuario, u.nombre, u.apellidos, u.contrasena, r.nombreRol
             FROM Usuario u
             JOIN Rol r ON u.idRol = r.idRol
             WHERE u.email = ?
         ");
 
         $stmt->execute([$email]);
-        $usuario = $stmt->fetch();
+        $usuario = $stmt->fetch(PDO::FETCH_ASSOC);
 
         if ($usuario && password_verify($password, $usuario['contrasena'])) {
 
-            $_SESSION['idUsuario'] = $usuario['idUsuario'];
-            $_SESSION['rol'] = $usuario['nombreRol'];
+            // Guardar sesión
+            $_SESSION['usuario'] = [
+                'idUsuario' => $usuario['idUsuario'],
+                'nombre' => $usuario['nombre'],
+                'apellidos' => $usuario['apellidos'],
+                'rol' => $usuario['nombreRol']
+            ];
 
+            // Redirección según rol
             if ($usuario['nombreRol'] === 'cliente') {
                 header("Location: tiendaComprar.php");
             } else {
@@ -43,6 +70,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
     }
 }
 ?>
+
 
 
 <!DOCTYPE html>

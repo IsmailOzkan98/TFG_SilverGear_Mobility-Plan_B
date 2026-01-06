@@ -1,3 +1,10 @@
+<?php
+require_once '../includes/common.php';
+require_once '../includes/security.php';
+requireRole(['admin','cliente','limpieza','ventas','mecanico','dropoff']);
+
+?>
+
 <!DOCTYPE html>
 <html lang="es">
 
