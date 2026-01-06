@@ -1,14 +1,12 @@
 <?php
 require_once '../includes/common.php';
 
-// Iniciar sesión si no está iniciada
+//iniciarsesion si no esta iniciada
 if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
 
-// ------------------------
-// Redirección si ya está logueado
-// ------------------------
+//autoredireccion en caso si estas logueado
 if (isset($_SESSION['usuario']['rol'])) {
     $rol = $_SESSION['usuario']['rol'];
     if ($rol === 'cliente') {
@@ -19,9 +17,6 @@ if (isset($_SESSION['usuario']['rol'])) {
     exit;
 }
 
-// ------------------------
-// Lógica de login
-// ------------------------
 $error = "";
 
 if ($_SERVER["REQUEST_METHOD"] === "POST") {
@@ -48,7 +43,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
 
         if ($usuario && password_verify($password, $usuario['contrasena'])) {
 
-            // Guardar sesión
+            // Guardar la sesión
             $_SESSION['usuario'] = [
                 'idUsuario' => $usuario['idUsuario'],
                 'nombre' => $usuario['nombre'],
@@ -56,7 +51,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                 'rol' => $usuario['nombreRol']
             ];
 
-            // Redirección según rol
+            // redireccion auto segun tu rol
             if ($usuario['nombreRol'] === 'cliente') {
                 header("Location: tiendaComprar.php");
             } else {

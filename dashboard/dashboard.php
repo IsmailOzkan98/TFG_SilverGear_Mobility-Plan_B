@@ -5,9 +5,6 @@ requireRole(['admin','mecanico']);
 
 $pdo = getPDO();
 
-// -----------------------
-// Consultas
-// -----------------------
 
 // Empleados
 $stmt = $pdo->query("SELECT u.*, r.nombreRol FROM Usuario u JOIN Rol r ON u.idRol = r.idRol WHERE r.nombreRol != 'cliente'");
@@ -59,7 +56,7 @@ $activas = $stmt->fetch(PDO::FETCH_ASSOC)['total'];
 
     <h1>Dashboard Administrador</h1>
 
-    <!-- Estadísticas rápidas -->
+    <!-- resumen general -->
     <div class="card">
         <h2>Resumen General</h2>
         <div style="display:flex; gap:20px; flex-wrap: wrap;">
@@ -82,7 +79,7 @@ $activas = $stmt->fetch(PDO::FETCH_ASSOC)['total'];
         </div>
     </div>
 
-    <!-- Gestión de Empleados -->
+    <!-- Empleados -->
     <div class="card" id="empleados">
         <h2>Gestión de Empleados</h2>
         <button class="primary">Añadir Empleado</button>
@@ -113,7 +110,7 @@ $activas = $stmt->fetch(PDO::FETCH_ASSOC)['total'];
         </table>
     </div>
 
-    <!-- Gestión de Clientes -->
+    <!-- Clientes -->
     <div class="card" id="clientes">
         <h2>Gestión de Clientes</h2>
         <button class="primary">Añadir Cliente</button>
@@ -142,7 +139,7 @@ $activas = $stmt->fetch(PDO::FETCH_ASSOC)['total'];
         </table>
     </div>
 
-    <!-- Gestión de Vehículos -->
+    <!-- Vehiculos -->
     <div class="card" id="vehiculos">
         <h2>Gestión de Vehículos</h2>
         <button class="primary" onclick="window.location.href='darAltaVehiculo.php'">Añadir Vehículo</button>
@@ -175,7 +172,7 @@ $activas = $stmt->fetch(PDO::FETCH_ASSOC)['total'];
         </table>
     </div>
 
-    <!-- Gestión de Reservas -->
+    <!-- Reservas -->
     <div class="card" id="reservas">
         <h2>Gestión de Reservas</h2>
         <button class="primary">Crear Reserva</button>
