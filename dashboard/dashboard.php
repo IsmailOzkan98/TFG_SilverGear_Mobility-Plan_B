@@ -1,10 +1,9 @@
 <?php
 require_once '../includes/common.php';
 require_once '../includes/security.php';
-requireRole(['admin','mecanico']);
+requireRole(['admin', 'mecanico']);
 
 $pdo = getPDO();
-
 
 // Empleados
 $stmt = $pdo->query("SELECT u.*, r.nombreRol FROM Usuario u JOIN Rol r ON u.idRol = r.idRol WHERE r.nombreRol != 'cliente'");
@@ -33,183 +32,243 @@ $activas = $stmt->fetch(PDO::FETCH_ASSOC)['total'];
 
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
     <meta charset="UTF-8">
     <title>Panel Administrador - SilverGear Mobility</title>
-    <link rel="stylesheet" href="../css/workerspace.css">
+
+    <!-- Bootstrap 5 -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
 </head>
-<body>
 
-<!-- Navbar -->
-<div class="navbar">
-    <div class="logo"><strong>SilverGear Mobility</strong></div>
-    <div class="nav-links">
-        <a href="#empleados">Empleados</a>
-        <a href="#clientes">Clientes</a>
-        <a href="#vehiculos">Vehículos</a>
-        <a href="#reservas">Reservas</a>
-        <a href="../includes/logout.php">Cerrar sesión</a>
-    </div>
-</div>
+<body class="bg-light">
 
-<div class="container">
+    <!-- Navbar -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+        <div class="container-fluid">
+            <span class="navbar-brand fw-bold">SilverGear Mobility</span>
 
-    <h1>Dashboard Administrador</h1>
-
-    <!-- resumen general -->
-    <div class="card">
-        <h2>Resumen General</h2>
-        <div style="display:flex; gap:20px; flex-wrap: wrap;">
-            <div class="card" style="flex:1; min-width:150px;">
-                <h3>Total Empleados</h3>
-                <p class="highlight"><?= count($empleados) ?></p>
-            </div>
-            <div class="card" style="flex:1; min-width:150px;">
-                <h3>Total Clientes</h3>
-                <p class="highlight"><?= count($clientes) ?></p>
-            </div>
-            <div class="card" style="flex:1; min-width:150px;">
-                <h3>Vehículos</h3>
-                <p class="highlight"><?= count($vehiculos) ?></p>
-            </div>
-            <div class="card" style="flex:1; min-width:150px;">
-                <h3>Reservas Activas</h3>
-                <p class="highlight"><?= $activas ?></p>
+            <div class="collapse navbar-collapse show">
+                <ul class="navbar-nav ms-auto mb-2 mb-lg-0">
+                    <li class="nav-item"><a class="nav-link" href="#empleados">Empleados</a></li>
+                    <li class="nav-item"><a class="nav-link" href="#clientes">Clientes</a></li>
+                    <li class="nav-item"><a class="nav-link" href="#vehiculos">Vehículos</a></li>
+                    <li class="nav-item"><a class="nav-link" href="#reservas">Reservas</a></li>
+                    <li class="nav-item"><a class="nav-link text-danger" href="../includes/logout.php">Cerrar sesión</a></li>
+                </ul>
             </div>
         </div>
-    </div>
+    </nav>
 
-    <!-- Empleados -->
-    <div class="card" id="empleados">
-        <h2>Gestión de Empleados</h2>
-        <button class="primary">Añadir Empleado</button>
-        <table>
-            <thead>
-                <tr>
-                    <th>DNI</th>
-                    <th>Nombre</th>
-                    <th>Email</th>
-                    <th>Rol</th>
-                    <th>Acciones</th>
-                </tr>
-            </thead>
-            <tbody>
-                <?php foreach($empleados as $row): ?>
-                <tr>
-                    <td><?= $row['dni'] ?></td>
-                    <td><?= $row['nombre'] . ' ' . $row['apellidos'] ?></td>
-                    <td><?= $row['email'] ?></td>
-                    <td><?= $row['nombreRol'] ?></td>
-                    <td>
-                        <button class="secondary">Editar</button>
-                        <button class="orange">Eliminar</button>
-                    </td>
-                </tr>
-                <?php endforeach; ?>
-            </tbody>
-        </table>
-    </div>
+    <div class="container my-4">
 
-    <!-- Clientes -->
-    <div class="card" id="clientes">
-        <h2>Gestión de Clientes</h2>
-        <button class="primary">Añadir Cliente</button>
-        <table>
-            <thead>
-                <tr>
-                    <th>DNI</th>
-                    <th>Nombre</th>
-                    <th>Email</th>
-                    <th>Acciones</th>
-                </tr>
-            </thead>
-            <tbody>
-                <?php foreach($clientes as $row): ?>
-                <tr>
-                    <td><?= $row['dni'] ?></td>
-                    <td><?= $row['nombre'] . ' ' . $row['apellidos'] ?></td>
-                    <td><?= $row['email'] ?></td>
-                    <td>
-                        <button class="secondary">Editar</button>
-                        <button class="orange">Eliminar</button>
-                    </td>
-                </tr>
-                <?php endforeach; ?>
-            </tbody>
-        </table>
-    </div>
+        <h1 class="mb-4">Dashboard Administrador</h1>
 
-    <!-- Vehiculos -->
-    <div class="card" id="vehiculos">
-        <h2>Gestión de Vehículos</h2>
-        <button class="primary" onclick="window.location.href='darAltaVehiculo.php'">Añadir Vehículo</button>
-        <table>
-            <thead>
-                <tr>
-                    <th>Matrícula</th>
-                    <th>Marca / Modelo</th>
-                    <th>Estado</th>
-                    <th>Kms</th>
-                    <th>Disponibilidad</th>
-                    <th>Acciones</th>
-                </tr>
-            </thead>
-            <tbody>
-                <?php foreach($vehiculos as $row): ?>
-                <tr>
-                    <td><?= $row['matricula'] ?></td>
-                    <td><?= $row['marca'] . ' ' . $row['modelo'] ?></td>
-                    <td><span class="badge-orange"><?= $row['nombreEstado'] ?></span></td>
-                    <td><?= $row['kmActual'] ?></td>
-                    <td><?= $row['disponibilidad'] ? 'Disponible' : 'No disponible' ?></td>
-                    <td>
-                        <button class="secondary">Editar</button>
-                        <button class="orange">Dar de baja</button>
-                    </td>
-                </tr>
-                <?php endforeach; ?>
-            </tbody>
-        </table>
-    </div>
+        <!-- Resumen General -->
+        <div class="card mb-4">
+            <div class="card-body">
+                <h5 class="card-title mb-3">Resumen General</h5>
 
-    <!-- Reservas -->
-    <div class="card" id="reservas">
-        <h2>Gestión de Reservas</h2>
-        <button class="primary">Crear Reserva</button>
-        <table>
-            <thead>
-                <tr>
-                    <th>ID</th>
-                    <th>Cliente</th>
-                    <th>Vehículo</th>
-                    <th>Fecha Inicio</th>
-                    <th>Fecha Fin</th>
-                    <th>Precio Total</th>
-                    <th>Estado</th>
-                    <th>Acciones</th>
-                </tr>
-            </thead>
-            <tbody>
-                <?php foreach($reservas as $row): ?>
-                <tr>
-                    <td><?= $row['idReserva'] ?></td>
-                    <td><?= $row['nombre'] . ' ' . $row['apellidos'] ?></td>
-                    <td><?= $row['marca'] . ' ' . $row['modelo'] ?></td>
-                    <td><?= $row['fechaInicio'] ?></td>
-                    <td><?= $row['fechaFin'] ?></td>
-                    <td><?= $row['precioTotal'] ?>€</td>
-                    <td><?= $row['estadoReserva'] ?></td>
-                    <td>
-                        <button class="secondary">Editar</button>
-                        <button class="orange">Cancelar</button>
-                    </td>
-                </tr>
-                <?php endforeach; ?>
-            </tbody>
-        </table>
-    </div>
+                <div class="row g-3">
+                    <div class="col-md-3">
+                        <div class="card text-center">
+                            <div class="card-body">
+                                <h6>Total Empleados</h6>
+                                <span class="fs-3 fw-bold"><?= count($empleados) ?></span>
+                            </div>
+                        </div>
+                    </div>
 
-</div>
+                    <div class="col-md-3">
+                        <div class="card text-center">
+                            <div class="card-body">
+                                <h6>Total Clientes</h6>
+                                <span class="fs-3 fw-bold"><?= count($clientes) ?></span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-md-3">
+                        <div class="card text-center">
+                            <div class="card-body">
+                                <h6>Vehículos</h6>
+                                <span class="fs-3 fw-bold"><?= count($vehiculos) ?></span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-md-3">
+                        <div class="card text-center">
+                            <div class="card-body">
+                                <h6>Reservas Activas</h6>
+                                <span class="fs-3 fw-bold"><?= $activas ?></span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Empleados -->
+        <div class="card mb-4" id="empleados">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h5>Gestión de Empleados</h5>
+                    <button class="btn btn-primary">Añadir Empleado</button>
+                </div>
+
+                <div class="table-responsive">
+                    <table class="table table-striped align-middle">
+                        <thead class="table-dark">
+                            <tr>
+                                <th>DNI</th>
+                                <th>Nombre</th>
+                                <th>Email</th>
+                                <th>Rol</th>
+                                <th>Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <?php foreach ($empleados as $row): ?>
+                                <tr>
+                                    <td><?= $row['dni'] ?></td>
+                                    <td><?= $row['nombre'] . ' ' . $row['apellidos'] ?></td>
+                                    <td><?= $row['email'] ?></td>
+                                    <td><?= $row['nombreRol'] ?></td>
+                                    <td>
+                                        <button class="btn btn-sm btn-secondary">Editar</button>
+                                        <button class="btn btn-sm btn-danger">Eliminar</button>
+                                    </td>
+                                </tr>
+                            <?php endforeach; ?>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Clientes -->
+        <div class="card mb-4" id="clientes">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h5>Gestión de Clientes</h5>
+                    <button class="btn btn-primary">Añadir Cliente</button>
+                </div>
+
+                <div class="table-responsive">
+                    <table class="table table-striped align-middle">
+                        <thead class="table-dark">
+                            <tr>
+                                <th>DNI</th>
+                                <th>Nombre</th>
+                                <th>Email</th>
+                                <th>Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <?php foreach ($clientes as $row): ?>
+                                <tr>
+                                    <td><?= $row['dni'] ?></td>
+                                    <td><?= $row['nombre'] . ' ' . $row['apellidos'] ?></td>
+                                    <td><?= $row['email'] ?></td>
+                                    <td>
+                                        <button class="btn btn-sm btn-secondary">Editar</button>
+                                        <button class="btn btn-sm btn-danger">Eliminar</button>
+                                    </td>
+                                </tr>
+                            <?php endforeach; ?>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Vehículos -->
+        <div class="card mb-4" id="vehiculos">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h5>Gestión de Vehículos</h5>
+                    <button class="btn btn-primary" onclick="location.href='darAltaVehiculo.php'">Añadir Vehículo</button>
+                </div>
+
+                <div class="table-responsive">
+                    <table class="table table-striped align-middle">
+                        <thead class="table-dark">
+                            <tr>
+                                <th>Matrícula</th>
+                                <th>Marca / Modelo</th>
+                                <th>Estado</th>
+                                <th>Kms</th>
+                                <th>Disponibilidad</th>
+                                <th>Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <?php foreach ($vehiculos as $row): ?>
+                                <tr>
+                                    <td><?= $row['matricula'] ?></td>
+                                    <td><?= $row['marca'] . ' ' . $row['modelo'] ?></td>
+                                    <td><span class="badge bg-warning text-dark"><?= $row['nombreEstado'] ?></span></td>
+                                    <td><?= $row['kmActual'] ?></td>
+                                    <td><?= $row['disponibilidad'] ? 'Disponible' : 'No disponible' ?></td>
+                                    <td>
+                                        <button class="btn btn-sm btn-secondary">Editar</button>
+                                        <button class="btn btn-sm btn-danger">Dar de baja</button>
+                                    </td>
+                                </tr>
+                            <?php endforeach; ?>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Reservas -->
+        <div class="card mb-4" id="reservas">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h5>Gestión de Reservas</h5>
+                    <button class="btn btn-primary">Crear Reserva</button>
+                </div>
+
+                <div class="table-responsive">
+                    <table class="table table-striped align-middle">
+                        <thead class="table-dark">
+                            <tr>
+                                <th>ID</th>
+                                <th>Cliente</th>
+                                <th>Vehículo</th>
+                                <th>Inicio</th>
+                                <th>Fin</th>
+                                <th>Precio</th>
+                                <th>Estado</th>
+                                <th>Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <?php foreach ($reservas as $row): ?>
+                                <tr>
+                                    <td><?= $row['idReserva'] ?></td>
+                                    <td><?= $row['nombre'] . ' ' . $row['apellidos'] ?></td>
+                                    <td><?= $row['marca'] . ' ' . $row['modelo'] ?></td>
+                                    <td><?= $row['fechaInicio'] ?></td>
+                                    <td><?= $row['fechaFin'] ?></td>
+                                    <td><?= $row['precioTotal'] ?>€</td>
+                                    <td><?= $row['estadoReserva'] ?></td>
+                                    <td>
+                                        <button class="btn btn-sm btn-secondary">Editar</button>
+                                        <button class="btn btn-sm btn-danger">Cancelar</button>
+                                    </td>
+                                </tr>
+                            <?php endforeach; ?>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+    </div>
 
 </body>
+
 </html>
