@@ -137,7 +137,7 @@ $activas = $stmt->fetch(PDO::FETCH_ASSOC)['total'];
                                     <td><?= $row['email'] ?></td>
                                     <td><?= $row['nombreRol'] ?></td>
                                     <td>
-                                        <button class="btn btn-sm btn-secondary">Editar</button>
+                                        <a href="editarUsuario.php?dni=<?= urlencode($row['dni']) ?>" class="btn btn-sm btn-secondary">Editar</a>
                                         <button class="btn btn-sm btn-danger">Eliminar</button>
                                     </td>
                                 </tr>
@@ -173,7 +173,7 @@ $activas = $stmt->fetch(PDO::FETCH_ASSOC)['total'];
                                     <td><?= $row['nombre'] . ' ' . $row['apellidos'] ?></td>
                                     <td><?= $row['email'] ?></td>
                                     <td>
-                                        <button class="btn btn-sm btn-secondary">Editar</button>
+                                        <a href="editarUsuario.php?dni=<?= urlencode($row['dni']) ?>" class="btn btn-sm btn-secondary">Editar</a>
                                         <button class="btn btn-sm btn-danger">Eliminar</button>
                                     </td>
                                 </tr>
