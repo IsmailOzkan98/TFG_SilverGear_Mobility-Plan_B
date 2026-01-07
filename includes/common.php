@@ -224,3 +224,27 @@ function validarMatricula(PDO $pdo, $matricula, $existeEnDB = true)
 
     return true;
 }
+
+//Volver segun cual quier rol
+/**
+ *<a href="<?= volverSegunRol() ?>" class="nav-link">Volver</a> 
+ */
+function volverSegunRol(?string $rol = null): string {
+    if ($rol === null) {
+        $rol = $_SESSION['usuario']['rol'] ?? null;
+    }
+
+    // Array de roles y sus paginas
+    $dashboards = [
+        'admin' => 'dashboardAdmin.php',
+        'mecanico' => 'dashboardMecanico.php',
+    ];
+
+    
+    if (isset($dashboards[$rol])) {
+        return $dashboards[$rol];
+    }
+
+    // Rol desconocido 
+    return 'index.php';
+}

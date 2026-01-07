@@ -50,6 +50,7 @@ $activas = $stmt->fetch(PDO::FETCH_ASSOC)['total'];
 
             <div class="collapse navbar-collapse show">
                 <ul class="navbar-nav ms-auto mb-2 mb-lg-0">
+                    <li class="nav-item"><a class="nav-link" href="dashboardMecanico.php">Panel Mecanico</a></li>
                     <li class="nav-item"><a class="nav-link" href="#empleados">Empleados</a></li>
                     <li class="nav-item"><a class="nav-link" href="#clientes">Clientes</a></li>
                     <li class="nav-item"><a class="nav-link" href="#vehiculos">Vehículos</a></li>

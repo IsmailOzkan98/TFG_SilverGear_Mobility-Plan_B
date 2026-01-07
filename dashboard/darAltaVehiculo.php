@@ -92,7 +92,7 @@ $transmisiones = ['Manual', 'Automático'];
             <span class="navbar-brand fw-bold">SilverGear Mobility - Alta nuevo vehículo</span>
             <div class="collapse navbar-collapse show">
                 <ul class="navbar-nav ms-auto mb-2 mb-lg-0">
-                    <li class="nav-item"><a class="nav-link" href="dashboard.php">Volver</a></li>
+                    <li class="nav-item"><a href="<?= volverSegunRol() ?>" class="nav-link">Volver</a></li>
                     <li class="nav-item"><a class="nav-link text-danger" href="../includes/logout.php">Cerrar sesión</a></li>
                 </ul>
             </div>

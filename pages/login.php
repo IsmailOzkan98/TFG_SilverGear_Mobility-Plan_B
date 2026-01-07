@@ -13,8 +13,10 @@ if (isset($_SESSION['usuario']['rol'])) {
     $rol = $_SESSION['usuario']['rol'];
     if ($rol === 'cliente') {
         header("Location: tiendaComprar.php");
-    } else {
-        header("Location: ../dashboard/dashboard.php");
+    } else if ($rol === 'admin'){
+        header("Location: ../dashboard/dashboardAdmin.php");
+    } else if ($rol === 'mecanico'){
+        header("Location: ../dashboard/dashboardMecanico.php");
     }
     exit;
 }
