@@ -55,7 +55,7 @@ require_once 'includes/common.php';
                     <div class="collapse navbar-collapse justify-content-end" id="navbarNav">
                         <ul class="navbar-nav text-center">
                             <li class="nav-item">
-                                <a class="nav-link" href="#" onclick="loadPage('pages/welcome.php')">Home</a>
+                                <a class="nav-link" href="#" onclick="loadPage('../index.php')">Home</a>
                             </li>
 
                             <?php if (!isset($_SESSION['usuario'])): ?>

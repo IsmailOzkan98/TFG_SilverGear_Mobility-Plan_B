@@ -1,7 +1,20 @@
 <?php
 require_once '../includes/common.php';
 require_once '../includes/security.php';
-requireRole(['admin','cliente','limpieza','ventas','mecanico','dropoff']);
+requireRole(['admin', 'cliente', 'limpieza', 'ventas', 'mecanico', 'dropoff']);
+
+$pdo = getPDO();
+$vehiculos = [];
+
+$stmt = $pdo->prepare("
+    SELECT v.*, c.nombreCategoria, e.nombreEstado
+    FROM Vehiculo v
+    JOIN Categoria c ON v.idCategoria = c.idCategoria
+    JOIN EstadoVehiculo e ON v.idEstado = e.idEstado
+    WHERE e.nombreEstado = 'VENTAS'
+");
+$stmt->execute();
+$vehiculos = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
 ?>
 
@@ -88,165 +101,32 @@ requireRole(['admin','cliente','limpieza','ventas','mecanico','dropoff']);
                         </div>
                     </div>
 
-
-
-                    <!-- Vehículos BORRAR MAS ADELANTE -->
+                    <!-- mostrar vehiculos -->
                     <div class="col-12 col-md-9">
                         <div class="row g-4">
-
-                            <!-- 10 Tarjetas generadas -->
-                            <div class="col-12 col-sm-6 col-lg-4">
-                                <div class="card h-100 vehicle-card">
-                                    <img src="../images/TestImg/mazda (1).jpg" class="card-img-top" alt="">
-                                    <div class="card-body">
-                                        <h6 class="card-title mb-1">Mazda CX-5 Evolution</h6>
-                                        <p class="mb-1">SUV</p>
-                                        <p class="fw-bold mb-0">27000€</p>
-                                        <p class="fw-bold mb-0">61164 km</p>
-                                        <br>
-                                        <button class="btn btn-custom w-100" onclick="loadPage('pages/articuloCompra.php')">Ver Detalles</button>
+                            <?php foreach ($vehiculos as $vehiculo): ?>
+                                <div class="col-12 col-sm-6 col-lg-4">
+                                    <div class="card h-100 vehicle-card">
+                                        <img src="<?= $vehiculo['imagenPrincipal'] ?? '../images/default-car.jpg' ?>" class="card-img-top" alt="Imagen de <?= htmlspecialchars($vehiculo['marca'] . ' ' . $vehiculo['modelo']) ?>">
+                                        <div class="card-body">
+                                            <h6 class="card-title mb-1"><?= htmlspecialchars($vehiculo['marca'] . ' ' . $vehiculo['modelo']) ?></h6>
+                                            <p class="mb-1"><?= htmlspecialchars($vehiculo['nombreCategoria']) ?></p>
+                                            <p class="fw-bold mb-0"><?= number_format($vehiculo['precioAdquisicion'], 2) ?>€</p>
+                                            <p class="fw-bold mb-0"><?= number_format($vehiculo['kmActual']) ?> km</p>
+                                            <br>
+                                            <?php if ($vehiculo['disponibilidad']): ?>
+                                                <button class="btn btn-custom w-100" onclick="loadPage('pages/articuloCompra.php?matricula=<?= urlencode($vehiculo['matricula']) ?>')">Ver Detalles</button>
+                                            <?php else: ?>
+                                                <p class="fw-bold mb-0 text-danger">NO DISPONIBLE</p>
+                                            <?php endif; ?>
+                                        </div>
                                     </div>
                                 </div>
-                            </div>
-                            <!-- Vehicle 1 -->
-                            <div class="col-12 col-sm-6 col-lg-4">
-                                <div class="card h-100 vehicle-card">
-                                    <img src="images/TestImg/coche1.jpg" class="card-img-top" alt="">
-                                    <div class="card-body">
-                                        <h6 class="card-title mb-1">Audi A4</h6>
-                                        <p class="mb-1">Sedán</p>
-                                        <p class="fw-bold mb-0">34000€</p>
-                                        <p class="fw-bold mb-0">45667 km</p>
-                                        <br>
-                                        <p class="fw-bold mb-0">NO DISPONIBLE</p>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <!-- Vehicle 2 -->
-                            <div class="col-12 col-sm-6 col-lg-4">
-                                <div class="card h-100 vehicle-card">
-                                    <img src="images/TestImg/coche2.jpg" class="card-img-top" alt="">
-                                    <div class="card-body">
-                                        <h6 class="card-title mb-1">BMW X5</h6>
-                                        <p class="mb-1">SUV</p>
-                                        <p class="fw-bold mb-0">43000€</p>
-                                        <p class="fw-bold mb-0">55567 km</p>
-                                        <br>
-                                        <p class="fw-bold mb-0">NO DISPONIBLE</p>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <!-- Vehicle 3 -->
-                            <div class="col-12 col-sm-6 col-lg-4">
-                                <div class="card h-100 vehicle-card">
-                                    <img src="images/TestImg/coche3.jpg" class="card-img-top" alt="">
-                                    <div class="card-body">
-                                        <h6 class="card-title mb-1">Mercedes C200</h6>
-                                        <p class="mb-1">Sedán</p>
-                                        <p class="fw-bold mb-0">33000€</p>
-                                        <p class="fw-bold mb-0">2234567 km</p>
-                                        <br>
-                                        <p class="fw-bold mb-0">NO DISPONIBLE</p>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <!-- Vehicle 4 -->
-                            <div class="col-12 col-sm-6 col-lg-4">
-                                <div class="card h-100 vehicle-card">
-                                    <img src="images/TestImg/coche4.jpg" class="card-img-top" alt="">
-                                    <div class="card-body">
-                                        <h6 class="card-title mb-1">Honda Civic</h6>
-                                        <p class="mb-1">Compacto</p>
-                                        <p class="fw-bold mb-0">15000€</p>
-                                        <p class="fw-bold mb-0">65467 km</p>
-                                        <br>
-                                        <p class="fw-bold mb-0">NO DISPONIBLE</p>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <!-- Vehicle 5 -->
-                            <div class="col-12 col-sm-6 col-lg-4">
-                                <div class="card h-100 vehicle-card">
-                                    <img src="images/TestImg/coche5.jpg" class="card-img-top" alt="">
-                                    <div class="card-body">
-                                        <h6 class="card-title mb-1">Toyota Corolla</h6>
-                                        <p class="mb-1">Compacto</p>
-                                        <p class="fw-bold mb-0">26000€</p>
-                                        <p class="fw-bold mb-0">45567 km</p>
-                                        <br>
-                                        <p class="fw-bold mb-0">NO DISPONIBLE</p>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <!-- Vehicle 6 -->
-                            <div class="col-12 col-sm-6 col-lg-4">
-                                <div class="card h-100 vehicle-card">
-                                    <img src="images/TestImg/coche6.jpg" class="card-img-top" alt="">
-                                    <div class="card-body">
-                                        <h6 class="card-title mb-1">Volkswagen Golf</h6>
-                                        <p class="mb-1">Compacto</p>
-                                        <p class="fw-bold mb-0">12000€</p>
-                                        <p class="fw-bold mb-0">453427 km</p>
-                                        <br>
-                                        <p class="fw-bold mb-0">NO DISPONIBLE</p>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <!-- Vehicle 7 -->
-                            <div class="col-12 col-sm-6 col-lg-4">
-                                <div class="card h-100 vehicle-card">
-                                    <img src="images/TestImg/coche7.jpg" class="card-img-top" alt="">
-                                    <div class="card-body">
-                                        <h6 class="card-title mb-1">Ford Focus</h6>
-                                        <p class="mb-1">Compacto</p>
-                                        <p class="fw-bold mb-0">27000€</p>
-                                        <p class="fw-bold mb-0">567 km</p>
-                                        <br>
-                                        <p class="fw-bold mb-0">NO DISPONIBLE</p>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <!-- Vehicle 8 -->
-                            <div class="col-12 col-sm-6 col-lg-4">
-                                <div class="card h-100 vehicle-card">
-                                    <img src="images/TestImg/coche8.jpg" class="card-img-top" alt="">
-                                    <div class="card-body">
-                                        <h6 class="card-title mb-1">Nissan Qashqai</h6>
-                                        <p class="mb-1">SUV</p>
-                                        <p class="fw-bold mb-0">22000€</p>
-                                        <p class="fw-bold mb-0">34567 km</p>
-                                        <br>
-                                        <p class="fw-bold mb-0">NO DISPONIBLE</p>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <!-- Vehicle 9 -->
-                            <div class="col-12 col-sm-6 col-lg-4">
-                                <div class="card h-100 vehicle-card">
-                                    <img src="images/TestImg/coche9.jpg" class="card-img-top" alt="">
-                                    <div class="card-body">
-                                        <h6 class="card-title mb-1">Kia Sportage</h6>
-                                        <p class="mb-1">SUV</p>
-                                        <p class="fw-bold mb-0">13000€</p>
-                                        <p class="fw-bold mb-0">56567 km</p>
-                                        <br>
-                                        <p class="fw-bold mb-0">NO DISPONIBLE</p>
-                                    </div>
-                                </div>
-                            </div>
+                            <?php endforeach; ?>
                         </div>
                     </div>
-                </div>
-            </div>
-        </div>
+
+                    
     </div>
     <div id="extra-container"></div>
     <div id="footer-container"></div>

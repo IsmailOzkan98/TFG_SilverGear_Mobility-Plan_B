@@ -34,13 +34,13 @@ function hasRole(array $rolesPermitidos): bool {
 function requireRole(array $rolesPermitidos) {
     // No hay usuario logueado
     if (!isset($_SESSION['usuario'])) {
-        header('Location: ../welcome.php');
+        header('Location: ../index.php');
         exit;
     }
 
     // Usuario logueado pero rol no permitido
     if (!hasRole($rolesPermitidos)) {
-        header('Location: ../welcome.php');
+        header('Location: ../index.php');
         exit;
     }
 }
