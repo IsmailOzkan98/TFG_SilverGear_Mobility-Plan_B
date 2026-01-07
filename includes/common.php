@@ -38,19 +38,40 @@ function validarApellidos($apellidos)
 }
 
 
-function validarDNI($dni)
+// function validarDNI($dni)
+// {
+//     $dni = strtoupper(str_replace([' ', '-'], '', $dni));
+
+//     //DNI: 8 num mas letra
+//     if (preg_match("/^[0-9]{8}[A-Z]$/", $dni)) {
+//         return true; // 
+//     }
+//     //NIE: X/Y/Z + 7 u 8 nums y letra final
+//     elseif (preg_match("/^[XYZ][0-9]{7,8}[A-Z]$/", $dni)) {
+//         return true; // 
+//     }
+//     return "Formato de DNI/NIE no es correcto.";
+// }
+
+function validarDNI(PDO $pdo, $dni, $existeEnDB = true)
 {
     $dni = strtoupper(str_replace([' ', '-'], '', $dni));
 
-    //DNI: 8 num mas letra
-    if (preg_match("/^[0-9]{8}[A-Z]$/", $dni)) {
-        return true; // 
+    // validar formato
+    if (!preg_match("/^[0-9]{8}[A-Z]$/", $dni) && !preg_match("/^[XYZ][0-9]{7,8}[A-Z]$/", $dni)) {
+        return "Formato de DNI o NIE introducido no es adecuado";
     }
-    //NIE: X/Y/Z + 7 u 8 nums y letra final
-    elseif (preg_match("/^[XYZ][0-9]{7,8}[A-Z]$/", $dni)) {
-        return true; // 
+
+    // Comprobar su existencia en bd
+    if ($existeEnDB) {
+        $stmt = $pdo->prepare("SELECT COUNT(*) FROM Usuario WHERE dni = :dni");
+        $stmt->execute([':dni' => $dni]);
+        if ($stmt->fetchColumn() > 0) {
+            return "El DNI/NIE ya esta registrado!";
+        }
     }
-    return "Formato de DNI/NIE no es correcto.";
+
+    return true;
 }
 
 
@@ -105,17 +126,38 @@ function validarContrasenaRepetida($pass, $repetir)
     return true;
 }
 
-function validarEmail($email) {
-    if (empty($email)) {
-        return "El email es obligatorio.";
-    }
+// function validarEmail($email) {
+//     if (empty($email)) {
+//         return "El email es obligatorio!";
+//     }
 
     
+//     if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+//         return "Formato de email introducido no es valido";
+//     }
+
+//     return true; 
+// }
+
+// Validar email Con verificacion de si existe ya
+function validarEmail($email, PDO $pdo, $existeEnDB = true)
+{
+    if (empty($email)) return "El email es obligatorio!";
+
     if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
-        return "Formato de email inválido.";
+        return "Formato de email introducido no es valido";
     }
 
-    return true; 
+    // Comprobar si ya existe
+    if ($existeEnDB) {
+        $stmt = $pdo->prepare("SELECT COUNT(*) FROM Usuario WHERE email = :email");
+        $stmt->execute([':email' => $email]);
+        if ($stmt->fetchColumn() > 0) {
+            return "El email ya esta registrado.";
+        }
+    }
+
+    return true;
 }
 
 //VEHICULO
@@ -165,4 +207,20 @@ function cambiarEstadoVehiculo(PDO $pdo, &$vehiculo, $nuevoEstado, $dniTrabajado
     ]);
 
     registrarHistorialVehiculo($pdo, $vehiculo->matricula, $dniTrabajador, "Cambio de estado a $nuevoEstado", $descripcion);
+}
+
+function validarMatricula(PDO $pdo, $matricula, $existeEnDB = true)
+{
+    $matricula = strtoupper(str_replace(' ', '', $matricula));
+
+    // Comprobar si ya existe
+    if ($existeEnDB) {
+        $stmt = $pdo->prepare("SELECT COUNT(*) FROM Vehiculo WHERE matricula = :matricula");
+        $stmt->execute([':matricula' => $matricula]);
+        if ($stmt->fetchColumn() > 0) {
+            return "Matricula introducida ya esta registrada.";
+        }
+    }
+
+    return true;
 }

@@ -1,7 +1,7 @@
 <?php
 require_once '../includes/common.php';
 require_once '../includes/security.php';
-requireRole(['admin', 'mecanico']);
+requireRole(['admin']);
 
 $pdo = getPDO();
 

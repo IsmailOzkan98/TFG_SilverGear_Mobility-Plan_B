@@ -55,28 +55,28 @@ require_once 'includes/common.php';
                     <div class="collapse navbar-collapse justify-content-end" id="navbarNav">
                         <ul class="navbar-nav text-center">
                             <li class="nav-item">
-                                <a class="nav-link" href="#" onclick="loadPage('../index.php')">Home</a>
+                                <a href="index.php" class="nav-link me-3 mb-1">Home</a>
                             </li>
 
                             <?php if (!isset($_SESSION['usuario'])): ?>
                                 <li class="nav-item">
-                                    <a class="nav-link" href="#" onclick="loadPage('pages/login.php')">Login</a>
+                                    <a href="pages/login.php" class="nav-link me-3 mb-1">Login</a>
                                 </li>
                             <?php else: ?>
                                 <li class="nav-item">
-                                    <a class="nav-link" href="#" onclick="loadPage('pages/miPerfil.php')">Mi Perfil</a>
+                                    <a href="#" class="nav-link me-3 mb-1">Mi Perfil</a>
                                 </li>
                                 <li class="nav-item">
-                                    <a class="nav-link" href="#" onclick="loadPage('pages/tiendaAlquiler.php')">Alquilar</a>
+                                    <a href="#" class="nav-link me-3 mb-1">Alquilar</a>
                                 </li>
                                 <li class="nav-item">
-                                    <a class="nav-link" href="#" onclick="loadPage('pages/tiendaComprar.php')">Comprar</a>
+                                    <a href="pages/tiendaComprar.php" class="nav-link me-3 mb-1">Comprar</a>
                                 </li>
                                 <li class="nav-item">
-                                    <a class="nav-link" href="#" onclick="loadPage('pages/tiendaAlquiler.php')">🛒</a>
+                                    <a href="#" class="nav-link me-3 mb-1">🛒</a>
                                 </li>
                                 <li class="nav-item">
-                                    <a class="nav-link" href="logout.php">Log Out</a>
+                                    <a class="nav-link me-3 mb-1" href="includes/logout.php">Log Out</a>
                                 </li>
                             <?php endif; ?>
                         </ul>

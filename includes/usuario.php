@@ -59,20 +59,22 @@ class Usuario {
         $campos = [
             'nombre' => validarNombre($this->nombre),
             'apellidos' => validarApellidos($this->apellidos),
-            'dni' => validarDNI($this->dni),
+            'dni' => validarDNI($this->pdo, $this->dni),  
             'fechaNacimiento' => validarFecha($this->fechaNacimiento),
             'direccion' => validarTexto($this->direccion, 'Dirección'),
             'ciudad' => validarTexto($this->ciudad, 'Ciudad'),
             'pais' => validarTexto($this->pais, 'País'),
             'codigoPostal' => validarCodigoPostal($this->codigoPostal),
             'telefono' => validarTelefono($this->telefono),
-            'email' => validarEmail($this->email),
+            'email' => validarEmail($this->email, $this->pdo),
             'fechaCarnet' => validarFecha($this->fechaCarnet),
         ];
 
         foreach ($campos as $campo => $resultado) {
-            if ($resultado !== true) $errores[$campo] = $resultado;
+        if ($resultado !== true) {
+            $errores[$campo] = $resultado;
         }
+    }
 
         return $errores;
     }
