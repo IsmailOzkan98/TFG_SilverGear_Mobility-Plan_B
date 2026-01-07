@@ -5,6 +5,9 @@ if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
 
+require_once __DIR__ . "/../weather.php";
+$weather = getWeather();
+
 function getPDO()
 {
     static $pdo = null; //conexion una vez
