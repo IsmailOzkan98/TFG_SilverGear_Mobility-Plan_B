@@ -213,7 +213,7 @@ $activas = $stmt->fetch(PDO::FETCH_ASSOC)['total'];
                                     <td><?= $row['kmActual'] ?></td>
                                     <td><?= $row['disponibilidad'] ? 'Disponible' : 'No disponible' ?></td>
                                     <td>
-                                        <button class="btn btn-sm btn-secondary">Editar</button>
+                                        <a href="editarVehiculo.php?idVehiculo=<?= $row['idVehiculo'] ?>" class="btn btn-sm btn-secondary">Editar</a>
                                         <button class="btn btn-sm btn-danger">Dar de baja</button>
                                     </td>
                                 </tr>
