@@ -1,7 +1,8 @@
 <?php
 require_once 'common.php';
 
-class Usuario {
+class Usuario
+{
     public $nombre;
     public $apellidos;
     public $dni;
@@ -19,7 +20,14 @@ class Usuario {
 
     private $pdo;
 
-    public function __construct($datos, PDO $pdo) {
+    public function getContrasenaHash(): string
+    {
+        return $this->contrasenaHash;
+    }
+
+
+    public function __construct($datos, PDO $pdo)
+    {
         $this->pdo = $pdo;
 
         $this->nombre = $datos['nombre'] ?? '';
@@ -41,7 +49,8 @@ class Usuario {
         $this->setContrasena($datos['contrasena'] ?? '', $datos['repetirContrasena'] ?? '');
     }
 
-    private function setContrasena($pass, $repetir) {
+    private function setContrasena($pass, $repetir)
+    {
         // Validar contraseñas con funciones de common.php
         $error = validarContrasena($pass);
         if ($error !== true) throw new Exception($error);
@@ -53,13 +62,14 @@ class Usuario {
         $this->contrasenaHash = hashContrasena($pass);
     }
 
-    public function validar() {
+    public function validar()
+    {
         $errores = [];
 
         $campos = [
             'nombre' => validarNombre($this->nombre),
             'apellidos' => validarApellidos($this->apellidos),
-            'dni' => validarDNI($this->pdo, $this->dni),  
+            'dni' => validarDNI($this->pdo, $this->dni),
             'fechaNacimiento' => validarFecha($this->fechaNacimiento),
             'direccion' => validarTexto($this->direccion, 'Dirección'),
             'ciudad' => validarTexto($this->ciudad, 'Ciudad'),
@@ -71,15 +81,16 @@ class Usuario {
         ];
 
         foreach ($campos as $campo => $resultado) {
-        if ($resultado !== true) {
-            $errores[$campo] = $resultado;
+            if ($resultado !== true) {
+                $errores[$campo] = $resultado;
+            }
         }
-    }
 
         return $errores;
     }
 
-    public function guardar() {
+    public function guardar()
+    {
         $errores = $this->validar();
         if (!empty($errores)) return ['errores' => $errores];
 
@@ -109,9 +120,8 @@ class Usuario {
             ]);
 
             return ['exito' => true];
-
         } catch (PDOException $e) {
-            if ($e->errorInfo[1] == 1062) { 
+            if ($e->errorInfo[1] == 1062) {
                 if (str_contains($e->getMessage(), 'dni')) return ['errores' => ['dni' => 'DNI ya registrado']];
                 if (str_contains($e->getMessage(), 'email')) return ['errores' => ['email' => 'Email ya registrado']];
             }
