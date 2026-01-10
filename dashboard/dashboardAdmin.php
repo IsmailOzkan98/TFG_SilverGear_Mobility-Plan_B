@@ -6,12 +6,45 @@ requireRole(['admin']);
 $pdo = getPDO();
 
 // Empleados
-$stmt = $pdo->query("SELECT u.*, r.nombreRol FROM Usuario u JOIN Rol r ON u.idRol = r.idRol WHERE r.nombreRol != 'cliente'");
+$filtroDNIEmpleado = $_GET['dniEmpleado'] ?? '';
+$filtroRolEmpleado = $_GET['rolEmpleado'] ?? '';
+
+$sql = "SELECT u.*, r.nombreRol 
+        FROM Usuario u 
+        JOIN Rol r ON u.idRol = r.idRol 
+        WHERE r.nombreRol != 'cliente'";
+
+$params = [];
+
+if (!empty($filtroDNIEmpleado)) {
+    $sql .= " AND u.dni LIKE :dni";
+    $params[':dni'] = "%$filtroDNIEmpleado%";
+}
+
+if (!empty($filtroRolEmpleado)) {
+    $sql .= " AND r.nombreRol = :rol";
+    $params[':rol'] = $filtroRolEmpleado;
+}
+
+$stmt = $pdo->prepare($sql);
+$stmt->execute($params);
 $empleados = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
+$stmtRoles = $pdo->query("SELECT nombreRol FROM Rol WHERE nombreRol != 'cliente'");
+$rolesEmpleados = $stmtRoles->fetchAll(PDO::FETCH_COLUMN);
+
 // Clientes
-$stmt = $pdo->query("SELECT u.* FROM Usuario u JOIN Rol r ON u.idRol = r.idRol WHERE r.nombreRol = 'cliente'");
+$filtroDNI = $_GET['dniCliente'] ?? '';
+
+if (!empty($filtroDNI)) {
+    $stmt = $pdo->prepare("SELECT u.* FROM Usuario u JOIN Rol r ON u.idRol = r.idRol WHERE r.nombreRol = 'cliente' AND u.dni LIKE :dni");
+    $stmt->execute([':dni' => "%$filtroDNI%"]);
+} else {
+    $stmt = $pdo->query("SELECT u.* FROM Usuario u JOIN Rol r ON u.idRol = r.idRol WHERE r.nombreRol = 'cliente'");
+}
+
 $clientes = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
 
 // Vehículos
 $stmt = $pdo->query("SELECT idEstado, nombreEstado FROM EstadoVehiculo");
@@ -127,33 +160,67 @@ $activas = $stmt->fetch(PDO::FETCH_ASSOC)['total'];
                     <h5>Gestión de Empleados</h5>
                     <!-- <button class="btn btn-primary">Añadir Empleado</button> -->
                 </div>
+                <div class="card mb-4" id="empleados">
+                    <div class="card-body">
+                        <h5 class="card-title mb-3">Consultar Empleados</h5>
 
-                <div class="table-responsive">
-                    <table class="table table-striped align-middle">
-                        <thead class="table-dark">
-                            <tr>
-                                <th>DNI</th>
-                                <th>Nombre</th>
-                                <th>Email</th>
-                                <th>Rol</th>
-                                <th>Acciones</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <?php foreach ($empleados as $row): ?>
-                                <tr>
-                                    <td><?= $row['dni'] ?></td>
-                                    <td><?= $row['nombre'] . ' ' . $row['apellidos'] ?></td>
-                                    <td><?= $row['email'] ?></td>
-                                    <td><?= $row['nombreRol'] ?></td>
-                                    <td>
-                                        <a href="editarUsuario.php?dni=<?= urlencode($row['dni']) ?>" class="btn btn-sm btn-secondary">Editar</a>
-                                        <button class="btn btn-sm btn-danger" onclick="confirmarEliminar('<?= $row['idUsuario'] ?>','<?= htmlspecialchars($row['nombre'] . ' ' . $row['apellidos']) ?>')">Eliminar</button>
-                                    </td>
-                                </tr>
-                            <?php endforeach; ?>
-                        </tbody>
-                    </table>
+                        <form method="GET" class="row g-2 align-items-end mb-3">
+                            <div class="col-auto">
+                                <label class="form-label">DNI Empleado</label>
+                                <input type="text" name="dniEmpleado" class="form-control" placeholder="Buscar por DNI"
+                                    value="<?= htmlspecialchars($_GET['dniEmpleado'] ?? '') ?>">
+                            </div>
+
+                            <div class="col-auto">
+                                <label class="form-label">Rol</label>
+                                <select name="rolEmpleado" class="form-select">
+                                    <option value="">Todos</option>
+                                    <?php foreach ($rolesEmpleados as $rol): ?>
+                                        <option value="<?= htmlspecialchars($rol) ?>"
+                                            <?= ($rol === ($filtroRolEmpleado ?? '')) ? 'selected' : '' ?>>
+                                            <?= htmlspecialchars($rol) ?>
+                                        </option>
+                                    <?php endforeach; ?>
+                                </select>
+                            </div>
+
+                            <div class="col-auto">
+                                <button class="btn btn-primary">Filtrar</button>
+                            </div>
+
+                            <div class="col-auto">
+                                <a href="<?= volverSegunRol() . '#empleados' ?>" class="btn btn-danger">Quitar filtro</a>
+                            </div>
+                        </form>
+
+                        <div class="table-responsive">
+                            <table class="table table-striped align-middle">
+                                <thead class="table-dark">
+                                    <tr>
+                                        <th>DNI</th>
+                                        <th>Nombre</th>
+                                        <th>Email</th>
+                                        <th>Rol</th>
+                                        <th>Acciones</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <?php foreach ($empleados as $row): ?>
+                                        <tr>
+                                            <td><?= $row['dni'] ?></td>
+                                            <td><?= $row['nombre'] . ' ' . $row['apellidos'] ?></td>
+                                            <td><?= $row['email'] ?></td>
+                                            <td><?= $row['nombreRol'] ?></td>
+                                            <td>
+                                                <a href="editarUsuario.php?dni=<?= urlencode($row['dni']) ?>" class="btn btn-sm btn-secondary">Editar</a>
+                                                <button class="btn btn-sm btn-danger" onclick="confirmarEliminar('<?= $row['idUsuario'] ?>','<?= htmlspecialchars($row['nombre'] . ' ' . $row['apellidos']) ?>')">Eliminar</button>
+                                            </td>
+                                        </tr>
+                                    <?php endforeach; ?>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -166,30 +233,51 @@ $activas = $stmt->fetch(PDO::FETCH_ASSOC)['total'];
                     <button class="btn btn-primary" onclick="location.href='../pages/registrar.php'">Crear Usuario Nuevo</button>
                 </div>
 
-                <div class="table-responsive">
-                    <table class="table table-striped align-middle">
-                        <thead class="table-dark">
-                            <tr>
-                                <th>DNI</th>
-                                <th>Nombre</th>
-                                <th>Email</th>
-                                <th>Acciones</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <?php foreach ($clientes as $row): ?>
-                                <tr>
-                                    <td><?= $row['dni'] ?></td>
-                                    <td><?= $row['nombre'] . ' ' . $row['apellidos'] ?></td>
-                                    <td><?= $row['email'] ?></td>
-                                    <td>
-                                        <a href="editarUsuario.php?dni=<?= urlencode($row['dni']) ?>" class="btn btn-sm btn-secondary">Editar</a>
-                                        <button class="btn btn-sm btn-danger" onclick="confirmarEliminar('<?= $row['idUsuario'] ?>','<?= htmlspecialchars($row['nombre'] . ' ' . $row['apellidos']) ?>','<?= $row['dni'] ?>')">Eliminar</button>
-                                    </td>
-                                </tr>
-                            <?php endforeach; ?>
-                        </tbody>
-                    </table>
+                <div class="card mb-4" id="clientes">
+                    <div class="card-body">
+                        <h5 class="card-title mb-3">Consultar Clientes</h5>
+                        <form method="GET" class="row g-2 align-items-end mb-3">
+                            <div class="col-auto">
+                                <label class="form-label">DNI</label>
+                                <input type="text" name="dniCliente" class="form-control" placeholder="DNI" value="<?= htmlspecialchars($_GET['dniCliente'] ?? '') ?>">
+                            </div>
+
+                            <div class="col-auto">
+                                <button class="btn btn-primary">Filtrar</button>
+                            </div>
+
+                            <div class="col-auto">
+                                <a href="<?= volverSegunRol() . '#clientes' ?>" class="btn btn-danger">Quitar filtro</a>
+                            </div>
+                        </form>
+
+                        <div class="table-responsive">
+                            <table class="table table-striped align-middle">
+
+                                <thead class="table-dark">
+                                    <tr>
+                                        <th>DNI</th>
+                                        <th>Nombre</th>
+                                        <th>Email</th>
+                                        <th>Acciones</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <?php foreach ($clientes as $row): ?>
+                                        <tr>
+                                            <td><?= $row['dni'] ?></td>
+                                            <td><?= $row['nombre'] . ' ' . $row['apellidos'] ?></td>
+                                            <td><?= $row['email'] ?></td>
+                                            <td>
+                                                <a href="editarUsuario.php?dni=<?= urlencode($row['dni']) ?>" class="btn btn-sm btn-secondary">Editar</a>
+                                                <button class="btn btn-sm btn-danger" onclick="confirmarEliminar('<?= $row['idUsuario'] ?>','<?= htmlspecialchars($row['nombre'] . ' ' . $row['apellidos']) ?>','<?= $row['dni'] ?>')">Eliminar</button>
+                                            </td>
+                                        </tr>
+                                    <?php endforeach; ?>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
