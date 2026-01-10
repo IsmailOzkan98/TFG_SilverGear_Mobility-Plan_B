@@ -106,7 +106,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
 
 // Datos para selects
-$estadosPermitidos = ['LIMPIO', 'SUCIO', 'IMPRO'];
+$rol = getUserRole();
+$estadosPermitidos = [];
+
+if ($rol === 'admin') {
+    $estadosPermitidos = ['LIMPIO', 'SUCIO', 'IMPRO'];
+} elseif ($rol === 'mecanico') {
+    $estadosPermitidos = ['SUCIO', 'IMPRO'];
+}
+
+
 $placeholders = implode(',', array_fill(0, count($estadosPermitidos), '?'));
 $estados = $pdo->prepare("
     SELECT idEstado, nombreEstado 
