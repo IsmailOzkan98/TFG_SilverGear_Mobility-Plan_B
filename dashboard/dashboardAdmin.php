@@ -46,6 +46,7 @@ $activas = $stmt->fetch(PDO::FETCH_ASSOC)['total'];
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
 </head>
 
+<script src="../js/usuarios.js"></script>
 <script src="../js/vehiculos.js"></script>
 
 <body class="bg-light">
@@ -58,6 +59,8 @@ $activas = $stmt->fetch(PDO::FETCH_ASSOC)['total'];
             <div class="collapse navbar-collapse show">
                 <ul class="navbar-nav ms-auto mb-2 mb-lg-0">
                     <li class="nav-item"><a class="nav-link" href="dashboardMecanico.php">Panel Mecanico</a></li>
+                    <li class="nav-item"><a class="nav-link" href="#">ALQUILER</a></li>
+                    <li class="nav-item"><a class="nav-link" href="../pages/tiendaComprar.php">VENTAS</a></li>
                     <li class="nav-item"><a class="nav-link" href="#empleados">Empleados</a></li>
                     <li class="nav-item"><a class="nav-link" href="#clientes">Clientes</a></li>
                     <li class="nav-item"><a class="nav-link" href="#vehiculos">Vehículos</a></li>
@@ -122,7 +125,7 @@ $activas = $stmt->fetch(PDO::FETCH_ASSOC)['total'];
             <div class="card-body">
                 <div class="d-flex justify-content-between align-items-center mb-3">
                     <h5>Gestión de Empleados</h5>
-                    <button class="btn btn-primary">Añadir Empleado</button>
+                    <!-- <button class="btn btn-primary">Añadir Empleado</button> -->
                 </div>
 
                 <div class="table-responsive">
@@ -145,7 +148,7 @@ $activas = $stmt->fetch(PDO::FETCH_ASSOC)['total'];
                                     <td><?= $row['nombreRol'] ?></td>
                                     <td>
                                         <a href="editarUsuario.php?dni=<?= urlencode($row['dni']) ?>" class="btn btn-sm btn-secondary">Editar</a>
-                                        <button class="btn btn-sm btn-danger">Eliminar</button>
+                                        <button class="btn btn-sm btn-danger" onclick="confirmarEliminar('<?= $row['idUsuario'] ?>','<?= htmlspecialchars($row['nombre'] . ' ' . $row['apellidos']) ?>')">Eliminar</button>
                                     </td>
                                 </tr>
                             <?php endforeach; ?>
@@ -160,7 +163,7 @@ $activas = $stmt->fetch(PDO::FETCH_ASSOC)['total'];
             <div class="card-body">
                 <div class="d-flex justify-content-between align-items-center mb-3">
                     <h5>Gestión de Clientes</h5>
-                    <button class="btn btn-primary">Añadir Cliente</button>
+                    <button class="btn btn-primary" onclick="location.href='../pages/registrar.php'">Crear Usuario Nuevo</button>
                 </div>
 
                 <div class="table-responsive">
@@ -181,7 +184,7 @@ $activas = $stmt->fetch(PDO::FETCH_ASSOC)['total'];
                                     <td><?= $row['email'] ?></td>
                                     <td>
                                         <a href="editarUsuario.php?dni=<?= urlencode($row['dni']) ?>" class="btn btn-sm btn-secondary">Editar</a>
-                                        <button class="btn btn-sm btn-danger">Eliminar</button>
+                                        <button class="btn btn-sm btn-danger" onclick="confirmarEliminar('<?= $row['idUsuario'] ?>','<?= htmlspecialchars($row['nombre'] . ' ' . $row['apellidos']) ?>','<?= $row['dni'] ?>')">Eliminar</button>
                                     </td>
                                 </tr>
                             <?php endforeach; ?>
@@ -253,7 +256,7 @@ $activas = $stmt->fetch(PDO::FETCH_ASSOC)['total'];
                             </div>
 
                             <div class="col-auto">
-                                <a href="dashboardAdmin.php#vehiculos" class="btn btn-danger">
+                                <a href="<?= volverSegunRol() . '#vehiculos' ?>" class="btn btn-danger">
                                     Quitar filtro
                                 </a>
                             </div>
@@ -288,13 +291,7 @@ $activas = $stmt->fetch(PDO::FETCH_ASSOC)['total'];
                                                 <a href="editarVehiculo.php?idVehiculo=<?= $row['idVehiculo'] ?>" class="btn btn-sm btn-secondary">Editar</a>
                                                 <a href="venderVehiculo.php?idVehiculo=<?= $row['idVehiculo'] ?>" class="btn btn-sm btn-secondary">Vender</a>
                                                 <a href="historialVehiculo.php?idVehiculo=<?= $row['idVehiculo'] ?>" class="btn btn-sm btn-secondary">Ver Historial</a>
-                                                <button
-                                                    class="btn btn-sm btn-danger"
-                                                    onclick="confirmarBaja('<?= $row['idVehiculo'] ?>')">
-                                                    Dar de baja
-                                                </button>
-
-
+                                                <button class="btn btn-sm btn-danger" onclick="confirmarBaja('<?= $row['idVehiculo'] ?>')"> Dar de baja</button>
                                             </td>
                                         </tr>
                                     <?php endforeach; ?>
