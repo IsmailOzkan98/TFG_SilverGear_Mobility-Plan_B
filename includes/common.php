@@ -225,6 +225,57 @@ function validarMatricula(PDO $pdo, $matricula, $existeEnDB = true)
     return true;
 }
 
+function obtenerFlotaFiltrada(array $get)
+{
+    $pdo = getPDO();
+    $where = [];
+    $params = [];
+
+    if (!empty($get['estado'])) {
+        $where[] = 'v.idEstado = :estado';
+        $params['estado'] = $get['estado'];
+    }
+
+    if (!empty($get['marca'])) {
+        $where[] = 'v.marca LIKE :marca';
+        $params['marca'] = '%' . $get['marca'] . '%';
+    }
+
+    if (!empty($get['modelo'])) {
+        $where[] = 'v.modelo LIKE :modelo';
+        $params['modelo'] = '%' . $get['modelo'] . '%';
+    }
+
+    if (!empty($get['categoria'])) {
+        $where[] = 'v.idCategoria = :categoria';
+        $params['categoria'] = $get['categoria'];
+    }
+
+    if (!empty($get['km'])) {
+        $where[] = 'v.kmActual <= :km';
+        $params['km'] = $get['km'];
+    }
+
+    $sql = "
+        SELECT 
+            v.*,
+            c.nombreCategoria,
+            e.nombreEstado
+        FROM Vehiculo v
+        JOIN Categoria c ON v.idCategoria = c.idCategoria
+        JOIN EstadoVehiculo e ON v.idEstado = e.idEstado
+    ";
+
+    if ($where) {
+        $sql .= " WHERE " . implode(" AND ", $where);
+    }
+
+    $stmt = $pdo->prepare($sql);
+    $stmt->execute($params);
+    return $stmt->fetchAll(PDO::FETCH_ASSOC);
+}
+
+
 //Volver segun cual quier rol
 /**
  *<a href="<?= volverSegunRol() ?>" class="nav-link">Volver</a> 
