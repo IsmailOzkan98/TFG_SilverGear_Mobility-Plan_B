@@ -12,7 +12,7 @@ function getPDO()
 {
     static $pdo = null; //conexion una vez
     if ($pdo === null) {
-        $pdo = conectar(); 
+        $pdo = conectar();
     }
     return $pdo;
 }
@@ -112,7 +112,7 @@ function validarContrasena($pass)
     if (!preg_match("/[A-Za-z]/", $pass) || !preg_match("/\d/", $pass)) {
         return "La contraseña debe contener letras y numeros.";
     }
-    return true; 
+    return true;
 }
 
 function hashContrasena($pass)
@@ -131,7 +131,7 @@ function validarContrasenaRepetida($pass, $repetir)
 //         return "El email es obligatorio!";
 //     }
 
-    
+
 //     if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
 //         return "Formato de email introducido no es valido";
 //     }
@@ -162,15 +162,16 @@ function validarEmail($email, PDO $pdo, $existeEnDB = true)
 
 //VEHICULO
 
-function actualizarDisponibilidadVehiculo(&$vehiculo) {
+function actualizarDisponibilidadVehiculo(&$vehiculo)
+{
     switch ($vehiculo->idEstado) {
-        case 'IMPRO':
-        case 'BAJA':
+        case 3: // IMPRO
+        case 5: // BAJA
             $vehiculo->disponibilidad = false;
             break;
-        case 'VENTAS':
-        case 'LIMPIO':
-        case 'SUCIO':
+        case 1: // LIMPIO
+        case 2: // SUCIO
+        case 4: // VENTAS
             $vehiculo->disponibilidad = true;
             break;
         default:
@@ -180,7 +181,8 @@ function actualizarDisponibilidadVehiculo(&$vehiculo) {
 }
 
 
-function registrarHistorialVehiculo(PDO $pdo, $matricula, $dniTrabajador, $accion, $descripcion = '') {
+function registrarHistorialVehiculo(PDO $pdo, $matricula, $dniTrabajador, $accion, $descripcion = '')
+{
     $stmt = $pdo->prepare("
         INSERT INTO Vehiculo_Historial (idVehiculo, dniTrabajador, accion, descripcion, fechaHora)
         SELECT idVehiculo, :dniTrabajador, :accion, :descripcion, NOW() 
@@ -195,7 +197,8 @@ function registrarHistorialVehiculo(PDO $pdo, $matricula, $dniTrabajador, $accio
 }
 
 
-function cambiarEstadoVehiculo(PDO $pdo, &$vehiculo, $nuevoEstado, $dniTrabajador, $descripcion = '') {
+function cambiarEstadoVehiculo(PDO $pdo, &$vehiculo, $nuevoEstado, $dniTrabajador, $descripcion = '')
+{
     $vehiculo->idEstado = $nuevoEstado;
     actualizarDisponibilidadVehiculo($vehiculo);
 
@@ -272,7 +275,14 @@ function obtenerFlotaFiltrada(array $get)
 
     $stmt = $pdo->prepare($sql);
     $stmt->execute($params);
-    return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    $vehiculos = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+    foreach ($vehiculos as &$v) {
+        // 1 LIMPIO 2 SUCIO
+        $v['disponibilidad'] = in_array($v['idEstado'], [1, 2]);
+    }
+
+    return $vehiculos;
 }
 
 
@@ -280,7 +290,8 @@ function obtenerFlotaFiltrada(array $get)
 /**
  *<a href="<?= volverSegunRol() ?>" class="nav-link">Volver</a> 
  */
-function volverSegunRol(?string $rol = null): string {
+function volverSegunRol(?string $rol = null): string
+{
     if ($rol === null) {
         $rol = $_SESSION['usuario']['rol'] ?? null;
     }
@@ -291,7 +302,7 @@ function volverSegunRol(?string $rol = null): string {
         'mecanico' => 'dashboardMecanico.php',
     ];
 
-    
+
     if (isset($dashboards[$rol])) {
         return $dashboards[$rol];
     }

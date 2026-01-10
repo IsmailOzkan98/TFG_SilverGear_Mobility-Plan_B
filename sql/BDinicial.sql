@@ -178,3 +178,13 @@ INSERT INTO EstadoVehiculo (nombreEstado) VALUES
 ('IMPRO'),
 ('VENTAS'),
 ('BAJA');
+
+
+CREATE TABLE IF NOT EXISTS Vehiculo_Imagenes (
+    idImagen INT AUTO_INCREMENT PRIMARY KEY,
+    idVehiculo INT NOT NULL,
+    rutaImagen VARCHAR(255) NOT NULL,
+    fechaSubida DATETIME NOT NULL DEFAULT NOW(),
+    FOREIGN KEY (idVehiculo) REFERENCES Vehiculo(idVehiculo) ON DELETE CASCADE
+);
+

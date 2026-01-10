@@ -27,6 +27,14 @@ class Vehiculo {
 
     private $pdo;
 
+    private static $estadoNombres = [
+        1 => 'LIMPIO',
+        2 => 'SUCIO',
+        3 => 'IMPRO',
+        4 => 'VENTAS',
+        5 => 'BAJA'
+    ];
+
     public function __construct($datos, PDO $pdo) {
         $this->pdo = $pdo;
 
@@ -41,7 +49,6 @@ class Vehiculo {
         $this->idCategoria = $datos['idCategoria'] ?? null;
         $this->idEstado = $datos['idEstado'] ?? null;
         $this->plazaParking = $datos['plazaParking'] ?? null;
-        $this->disponibilidad = isset($datos['disponibilidad']) ? ($datos['disponibilidad'] ? 1 : 0) : 0;
         $this->kmInicial = $datos['kmInicial'] ?? 0;
         $this->kmActual = $datos['kmActual'] ?? 0;
         $this->fechaUltimaRevision = $datos['fechaUltimaRevision'] ?? null;
@@ -52,16 +59,34 @@ class Vehiculo {
         $this->contadorReservas = $datos['contadorReservas'] ?? 0;
         $this->notasInternas = $datos['notasInternas'] ?? '';
         $this->manipuladoPor = $datos['manipuladoPor'] ?? null;
+
+        $this->actualizarDisponibilidad();
     }
 
-    // Guardar vehiculo
+    public function actualizarDisponibilidad() {
+        $nombre = self::$estadoNombres[$this->idEstado] ?? '';
+        $this->disponibilidad = in_array($nombre, ['LIMPIO','SUCIO','VENTAS','IMPRO','BAJA']);
+    }
+
+    public function esAlquilable(): bool {
+        return in_array(self::$estadoNombres[$this->idEstado] ?? '', ['LIMPIO','SUCIO']);
+    }
+
+    public function esVendible(): bool {
+        return (self::$estadoNombres[$this->idEstado] ?? '') === 'VENTAS';
+    }
+
     public function guardar() {
         try {
             $stmt = $this->pdo->prepare("
-                INSERT INTO Vehiculo 
-                (matricula, marca, modelo, anio, color, numeroPlazas, tipoPropulsion, transmision, idCategoria, idEstado, plazaParking, disponibilidad, kmInicial, kmActual, fechaUltimaRevision, fechaProximaRevision, imagenPrincipal, precioAdquisicion, fechaAdquisicion, contadorReservas, notasInternas, manipuladoPor)
-                VALUES
-                (:matricula, :marca, :modelo, :anio, :color, :numeroPlazas, :tipoPropulsion, :transmision, :idCategoria, :idEstado, :plazaParking, :disponibilidad, :kmInicial, :kmActual, :fechaUltimaRevision, :fechaProximaRevision, :imagenPrincipal, :precioAdquisicion, :fechaAdquisicion, :contadorReservas, :notasInternas, :manipuladoPor)
+                UPDATE Vehiculo SET 
+                    marca=:marca, modelo=:modelo, anio=:anio, color=:color,
+                    numeroPlazas=:numeroPlazas, tipoPropulsion=:tipoPropulsion, transmision=:transmision,
+                    idCategoria=:idCategoria, idEstado=:idEstado, disponibilidad=:disponibilidad,
+                    kmActual=:kmActual, fechaUltimaRevision=:fechaUltimaRevision, fechaProximaRevision=:fechaProximaRevision,
+                    precioAdquisicion=:precioAdquisicion, fechaAdquisicion=:fechaAdquisicion, notasInternas=:notasInternas,
+                    manipuladoPor=:manipuladoPor
+                WHERE matricula=:matricula
             ");
 
             $stmt->execute([
@@ -75,16 +100,12 @@ class Vehiculo {
                 ':transmision' => $this->transmision,
                 ':idCategoria' => $this->idCategoria,
                 ':idEstado' => $this->idEstado,
-                ':plazaParking' => $this->plazaParking,
                 ':disponibilidad' => $this->disponibilidad,
-                ':kmInicial' => $this->kmInicial,
                 ':kmActual' => $this->kmActual,
                 ':fechaUltimaRevision' => $this->fechaUltimaRevision,
                 ':fechaProximaRevision' => $this->fechaProximaRevision,
-                ':imagenPrincipal' => $this->imagenPrincipal,
                 ':precioAdquisicion' => $this->precioAdquisicion,
                 ':fechaAdquisicion' => $this->fechaAdquisicion,
-                ':contadorReservas' => $this->contadorReservas,
                 ':notasInternas' => $this->notasInternas,
                 ':manipuladoPor' => $this->manipuladoPor
             ]);
@@ -92,19 +113,11 @@ class Vehiculo {
             return ['exito' => true];
 
         } catch (PDOException $e) {
-            if ($e->errorInfo[1] == 1062 && str_contains($e->getMessage(), 'matricula')) {
-                return ['errores' => ['matricula' => 'Matrícula ya registrada']];
-            }
             return ['errores' => ['general' => $e->getMessage()]];
         }
     }
 
-    
-    public function esAlquilable(): bool {
-        return in_array($this->idEstado, ['LIMPIO', 'SUCIO']) && $this->disponibilidad;
-    }
-
-    public function esVendible(): bool {
-        return $this->idEstado === 'VENTAS' && $this->disponibilidad;
+    public static function obtenerNombreEstado($idEstado) {
+        return self::$estadoNombres[$idEstado] ?? '';
     }
 }
