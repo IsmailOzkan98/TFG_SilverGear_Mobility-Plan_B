@@ -23,7 +23,9 @@ $vehiculo = new Vehiculo($datosDB, $pdo);
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     try {
-        // Actualizar datos con POST
+        $estadoAnterior = $vehiculo->idEstado;
+
+        // Actualizar datos 
         $vehiculo->matricula = strtoupper(trim($_POST['matricula']));
         $vehiculo->marca = strtoupper(trim($_POST['marca']));
         $vehiculo->modelo = strtoupper(trim($_POST['modelo']));
@@ -53,13 +55,27 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             throw new Exception("Número de plazas debe estar entre 2 y 9.");
         }
 
-        // Actualizar disponibilidad según estado automáticamente
-        $vehiculo->actualizarDisponibilidad();
+        // Cambios de estado
+        if ($estadoAnterior != $vehiculo->idEstado) {
+            cambiarEstadoVehiculo($pdo, $vehiculo, $vehiculo->idEstado, $vehiculo->manipuladoPor);
+        } else {
+            actualizarDisponibilidadVehiculo($vehiculo);
+        }
 
-        // Guardar cambios en la base de datos
         $vehiculo->guardar();
 
-        // Actualizar datosDB para mostrar en el formulario correctamente
+        $accion = $estadoAnterior != $vehiculo->idEstado
+            ? "Edicion de vehiculo y cambio de su estado."
+            : "Edicion de vehículo";
+        registrarHistorialVehiculo(
+            $pdo,
+            $vehiculo->matricula,
+            $vehiculo->manipuladoPor,
+            $accion,
+            "Se actualizaron datos generales"
+        );
+
+        // Actualizar
         $datosDB = [
             'matricula' => $vehiculo->matricula,
             'marca' => $vehiculo->marca,
@@ -81,22 +97,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             'disponibilidad' => $vehiculo->disponibilidad
         ];
 
-        // Registrar historial
-        $stmtHist = $pdo->prepare("
-            INSERT INTO Vehiculo_Historial (idVehiculo, dniTrabajador, accion, descripcion, fechaHora)
-            VALUES (:idVehiculo, :dniTrabajador, :accion, '', NOW())
-        ");
-        $stmtHist->execute([
-            ':idVehiculo' => $idVehiculo,
-            ':dniTrabajador' => $vehiculo->manipuladoPor,
-            ':accion' => 'Cambio de estado a ' . Vehiculo::obtenerNombreEstado($vehiculo->idEstado)
-        ]);
-
         $mensaje = "Vehículo actualizado correctamente.";
+
     } catch (Exception $e) {
         $errores['general'] = $e->getMessage();
     }
 }
+
 
 // Datos para selects
 $estadosPermitidos = ['LIMPIO', 'SUCIO', 'IMPRO'];
@@ -160,7 +167,7 @@ $transmisiones = ['Manual', 'Automático'];
 
                 <form method="post">
                     <div class="row g-3">
-                        <!-- Campos habituales -->
+                        
                         <div class="col-md-6">
                             <label class="form-label">Matrícula</label>
                             <input type="text" class="form-control" name="matricula" value="<?= htmlspecialchars($datosDB['matricula']) ?>" required>

@@ -18,7 +18,6 @@ $stmt->execute([':idVehiculo' => $idVehiculo]);
 $datosDB = $stmt->fetch(PDO::FETCH_ASSOC);
 if (!$datosDB) die("Vehículo no encontrado.");
 
-
 $vehiculo = new Vehiculo($datosDB, $pdo);
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
@@ -26,18 +25,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $vehiculo->notasInternas = $_POST['notasInternas'] ?? $vehiculo->notasInternas;
         $vehiculo->manipuladoPor = $_SESSION['usuario']['dni'] ?? null;
 
-        // Cambiar a VENTAS
+        
         $stmtEstado = $pdo->prepare("SELECT idEstado FROM EstadoVehiculo WHERE nombreEstado='VENTAS'");
         $stmtEstado->execute();
         $idVentas = $stmtEstado->fetchColumn();
-        if (!$idVentas) throw new Exception("ERROR");
-        $vehiculo->idEstado = $idVentas;
-        $vehiculo->actualizarDisponibilidad();
+        if (!$idVentas) throw new Exception("ERROR: Estado VENTAS no encontrado");
 
-        // Guardar 
-        $vehiculo->guardar();
+        
+        cambiarEstadoVehiculo($pdo, $vehiculo, $idVentas, $vehiculo->manipuladoPor, $vehiculo->notasInternas);
 
-        // IMAGENES
+        // Subida de imagenes
         if (!empty($_FILES['imagenes']['name'][0])) {
             $carpetaDestino = '../images/Ventas/' . $idVehiculo . '/';
             if (!is_dir($carpetaDestino)) mkdir($carpetaDestino, 0755, true);
@@ -60,25 +57,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             }
         }
 
-        
-        $stmtHist = $pdo->prepare("
-            INSERT INTO Vehiculo_Historial (idVehiculo, dniTrabajador, accion, descripcion, fechaHora)
-            VALUES (:idVehiculo, :dniTrabajador, :accion, '', NOW())
-        ");
-        $stmtHist->execute([
-            ':idVehiculo' => $idVehiculo,
-            ':dniTrabajador' => $vehiculo->manipuladoPor,
-            ':accion' => 'Vehiculo puesto a la venta'
-        ]);
-
-        $mensaje = "Vehiculo puesto a la venta e imagenes se han subido correctamente!";
+        $mensaje = "Vehículo puesto a la venta e imágenes subidas correctamente!";
 
     } catch (Exception $e) {
         $errores['general'] = $e->getMessage();
     }
 }
 
-
+//imagenes actuales
 $stmtImgs = $pdo->prepare("SELECT * FROM Vehiculo_Imagenes WHERE idVehiculo=:idVehiculo");
 $stmtImgs->execute([':idVehiculo' => $idVehiculo]);
 $imagenes = $stmtImgs->fetchAll(PDO::FETCH_ASSOC);
@@ -109,7 +95,7 @@ $imagenes = $stmtImgs->fetchAll(PDO::FETCH_ASSOC);
 <div class="container">
     <div class="card mb-4">
         <div class="card-body">
-            <h1 class="mb-4">Poner Vehiculo a la Venta</h1>
+            <h1 class="mb-4">Poner Vehículo a la Venta</h1>
 
             <?php if ($mensaje): ?>
                 <div class="alert alert-success"><?= htmlspecialchars($mensaje) ?></div>
@@ -140,7 +126,7 @@ $imagenes = $stmtImgs->fetchAll(PDO::FETCH_ASSOC);
                     </div>
                     <div class="col-md-6">
                         <label class="form-label">Estado actual</label>
-                        <input type="text" class="form-control" value="<?= Vehiculo::obtenerNombreEstado($datosDB['idEstado']) ?>" readonly>
+                        <input type="text" class="form-control" value="<?= Vehiculo::obtenerNombreEstado($vehiculo->idEstado) ?>" readonly>
                     </div>
 
                     <div class="col-12">
@@ -149,13 +135,13 @@ $imagenes = $stmtImgs->fetchAll(PDO::FETCH_ASSOC);
                     </div>
 
                     <div class="col-12">
-                        <label class="form-label">Subir imagenes del vehiculo</label>
+                        <label class="form-label">Subir imágenes del vehículo</label>
                         <input type="file" class="form-control" name="imagenes[]" multiple>
                     </div>
 
                     <?php if ($imagenes): ?>
                         <div class="col-12 mt-3">
-                            <label class="form-label">Imagenes actuales:</label>
+                            <label class="form-label">Imágenes actuales:</label>
                             <div class="d-flex flex-wrap gap-2">
                                 <?php foreach ($imagenes as $img): ?>
                                     <img src="<?= htmlspecialchars($img['rutaImagen']) ?>" alt="Imagen" style="height:100px;">

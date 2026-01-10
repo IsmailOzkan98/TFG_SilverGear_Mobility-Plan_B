@@ -183,6 +183,7 @@ function actualizarDisponibilidadVehiculo(&$vehiculo)
 
 function registrarHistorialVehiculo(PDO $pdo, $matricula, $dniTrabajador, $accion, $descripcion = '')
 {
+    
     $stmt = $pdo->prepare("
         INSERT INTO Vehiculo_Historial (idVehiculo, dniTrabajador, accion, descripcion, fechaHora)
         SELECT idVehiculo, :dniTrabajador, :accion, :descripcion, NOW() 
@@ -197,20 +198,31 @@ function registrarHistorialVehiculo(PDO $pdo, $matricula, $dniTrabajador, $accio
 }
 
 
-function cambiarEstadoVehiculo(PDO $pdo, &$vehiculo, $nuevoEstado, $dniTrabajador, $descripcion = '')
+
+
+function cambiarEstadoVehiculo(PDO $pdo, &$vehiculo, $nuevoEstado, $dniTrabajador = null, $descripcion = '')
 {
+    
+
     $vehiculo->idEstado = $nuevoEstado;
     actualizarDisponibilidadVehiculo($vehiculo);
 
-    $stmt = $pdo->prepare("UPDATE Vehiculo SET idEstado = :idEstado, disponibilidad = :disponibilidad WHERE matricula = :matricula");
+    $stmt = $pdo->prepare("
+        UPDATE Vehiculo 
+        SET idEstado = :idEstado, disponibilidad = :disponibilidad 
+        WHERE matricula = :matricula
+    ");
     $stmt->execute([
         ':idEstado' => $vehiculo->idEstado,
-        ':disponibilidad' => $vehiculo->disponibilidad,
+        ':disponibilidad' => $vehiculo->disponibilidad ? 1 : 0,
         ':matricula' => $vehiculo->matricula
     ]);
 
-    registrarHistorialVehiculo($pdo, $vehiculo->matricula, $dniTrabajador, "Cambio de estado a $nuevoEstado", $descripcion);
+    // Registrar historial con nombre legible del estado
+    $nombreEstado = Vehiculo::obtenerNombreEstado($nuevoEstado);
+    registrarHistorialVehiculo($pdo, $vehiculo->matricula, $dniTrabajador, "Cambio de estado a $nombreEstado", $descripcion);
 }
+
 
 function validarMatricula(PDO $pdo, $matricula, $existeEnDB = true)
 {

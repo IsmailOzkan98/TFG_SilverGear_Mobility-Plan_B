@@ -1,6 +1,7 @@
 <?php
 require_once '../includes/common.php';
 require_once '../includes/security.php';
+require_once '../includes/Vehiculo.php';
 
 requireRole(['mecanico', 'admin']);
 
@@ -11,16 +12,29 @@ if (!isset($_GET['idVehiculo'])) {
 
 $pdo = getPDO();
 
-$stmt = $pdo->prepare("
-    UPDATE Vehiculo 
-    SET idEstado = (
-        SELECT idEstado FROM EstadoVehiculo WHERE nombreEstado = 'BAJA'
-    ),
-    disponibilidad = 0
-    WHERE idVehiculo = :id
-");
+// Cargar datos del vehículo
+$idVehiculo = $_GET['idVehiculo'];
+$stmt = $pdo->prepare("SELECT * FROM Vehiculo WHERE idVehiculo = :idVehiculo");
+$stmt->execute([':idVehiculo' => $idVehiculo]);
+$datosDB = $stmt->fetch(PDO::FETCH_ASSOC);
 
-$stmt->execute(['id' => $_GET['idVehiculo']]);
+if (!$datosDB) {
+    header('Location: dashboardAdmin.php#vehiculos');
+    exit;
+}
+
+$vehiculo = new Vehiculo($datosDB, $pdo);
+
+// Obtener idEstado de BAJA
+$stmtEstado = $pdo->prepare("SELECT idEstado FROM EstadoVehiculo WHERE nombreEstado='BAJA'");
+$stmtEstado->execute();
+$idBaja = $stmtEstado->fetchColumn();
+
+if ($idBaja) {
+    // Cambiar estado y registrar historial globalmente
+    $dniTrabajador = $_SESSION['usuario']['dni'] ?? null;
+    cambiarEstadoVehiculo($pdo, $vehiculo, $idBaja, $dniTrabajador, 'Vehículo dado de baja');
+}
 
 header('Location: dashboardAdmin.php#vehiculos');
 exit;

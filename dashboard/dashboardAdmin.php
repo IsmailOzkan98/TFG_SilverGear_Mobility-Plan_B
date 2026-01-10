@@ -287,7 +287,7 @@ $activas = $stmt->fetch(PDO::FETCH_ASSOC)['total'];
                                             <td>
                                                 <a href="editarVehiculo.php?idVehiculo=<?= $row['idVehiculo'] ?>" class="btn btn-sm btn-secondary">Editar</a>
                                                 <a href="venderVehiculo.php?idVehiculo=<?= $row['idVehiculo'] ?>" class="btn btn-sm btn-secondary">Vender</a>
-                                                <a href="verHistorialVehiculo.php?idVehiculo=<?= $row['idVehiculo'] ?>" class="btn btn-sm btn-secondary">Ver Historial</a>
+                                                <a href="historialVehiculo.php?idVehiculo=<?= $row['idVehiculo'] ?>" class="btn btn-sm btn-secondary">Ver Historial</a>
                                                 <button
                                                     class="btn btn-sm btn-danger"
                                                     onclick="confirmarBaja('<?= $row['idVehiculo'] ?>')">
