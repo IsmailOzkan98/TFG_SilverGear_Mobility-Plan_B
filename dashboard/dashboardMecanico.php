@@ -136,6 +136,7 @@ $categorias = $pdo->query("SELECT * FROM Categoria")->fetchAll(PDO::FETCH_ASSOC)
                                         <th>Marca / Modelo</th>
                                         <th>Estado</th>
                                         <th>Kms</th>
+                                        <th>Categoria</th>
                                         <th>Disponibilidad</th>
                                         <th>Acciones</th>
                                     </tr>
@@ -151,6 +152,7 @@ $categorias = $pdo->query("SELECT * FROM Categoria")->fetchAll(PDO::FETCH_ASSOC)
                                                 </span>
                                             </td>
                                             <td><?= $row['kmActual'] ?></td>
+                                            <td><?= $row['nombreCategoria'] ?></td>
                                             <td><?= $row['disponibilidad'] ? 'Disponible' : 'No disponible' ?></td>
                                             <td>
                                                 <a href="editarVehiculo.php?idVehiculo=<?= $row['idVehiculo'] ?>" class="btn btn-sm btn-secondary">Editar</a>

@@ -10,6 +10,7 @@ $errores = [];
 
 // Obtener vh
 $idVehiculo = $_GET['idVehiculo'] ?? null;
+
 if (!$idVehiculo) die("Vehículo no especificado.");
 
 // Cargar datos 
@@ -19,6 +20,12 @@ $datosDB = $stmt->fetch(PDO::FETCH_ASSOC);
 if (!$datosDB) die("Vehículo no encontrado.");
 
 $vehiculo = new Vehiculo($datosDB, $pdo);
+
+//obtener matricula
+$matricula = $datosDB['matricula'];
+$matriculaRuta = preg_replace('/[^A-Z0-9\-]/i', '_', $matricula);
+
+
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     try {
@@ -36,7 +43,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         // Subida de imagenes
         if (!empty($_FILES['imagenes']['name'][0])) {
-            $carpetaDestino = '../images/Ventas/' . $idVehiculo . '/';
+            $carpetaDestino = '../images/Ventas/' . $matriculaRuta . '/';
             if (!is_dir($carpetaDestino)) mkdir($carpetaDestino, 0755, true);
 
             $archivos = $_FILES['imagenes'];
