@@ -96,7 +96,7 @@ if (empty($imagenes)) {
                 <p class="mb-3"><strong>Descripción:</strong> <?= nl2br(htmlspecialchars($vehiculo['notasInternas'] ?? 'No hay descripción disponible')) ?></p>
 
                 <?php if ($vehiculo['disponibilidad']): ?>
-                    <a class="btn btn-custom w-100" href="cesta.php?accion=añadir&id=<?= $vehiculo['idVehiculo'] ?>">Añadir a la cesta</a>
+                    <a class="btn btn-custom w-100 mb-2" href="cesta.php?accion=añadir&id=<?= $vehiculo['idVehiculo'] ?>">Añadir a la cesta</a>
                 <?php else: ?>
                     <p class="fw-bold text-danger mb-2">No disponible para compra</p>
                 <?php endif; ?>

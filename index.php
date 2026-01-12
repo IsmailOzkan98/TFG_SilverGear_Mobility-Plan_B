@@ -65,7 +65,7 @@ require_once 'includes/common.php';
                                 </li>
                             <?php else: ?>
                                 <li class="nav-item">
-                                    <a href="#" class="nav-link me-3 mb-1">Mi Perfil</a>
+                                    <a href="../pages/miPerfil.php" class="nav-link me-3 mb-1">Mi Perfil</a>
                                 </li>
                                 <li class="nav-item">
                                     <a href="#" class="nav-link me-3 mb-1">Alquilar</a>
