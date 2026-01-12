@@ -1,7 +1,7 @@
 <?php
 require_once '../includes/common.php';
 require_once '../includes/security.php';
-requireRole(['admin', 'cliente', 'limpieza', 'ventas', 'mecanico', 'dropoff']);
+requireRole(['admin', 'cliente', 'ventas', 'mecanico']);
 
 $pdo = getPDO();
 
@@ -91,12 +91,12 @@ if (empty($imagenes)) {
                 <p class="mb-2"><strong>Marca:</strong> <?= htmlspecialchars($vehiculo['marca']) ?></p>
                 <p class="mb-2"><strong>Modelo:</strong> <?= htmlspecialchars($vehiculo['modelo']) ?></p>
                 <p class="mb-2"><strong>Año:</strong> <?= htmlspecialchars($vehiculo['anio']) ?></p>
-                <p class="mb-2"><strong>Precio:</strong> <?= number_format($vehiculo['precioAdquisicion'], 2) ?> €</p>
+                <p class="mb-2"><strong>Precio:</strong> <?= number_format($vehiculo['precioVenta'], 2) ?> €</p>
                 <p class="mb-3"><strong>Kilometraje:</strong> <?= number_format($vehiculo['kmActual']) ?> km</p>
                 <p class="mb-3"><strong>Descripción:</strong> <?= nl2br(htmlspecialchars($vehiculo['notasInternas'] ?? 'No hay descripción disponible')) ?></p>
 
                 <?php if ($vehiculo['disponibilidad']): ?>
-                    <a href="comprar.php?idVehiculo=<?= $vehiculo['idVehiculo'] ?>" class="btn btn-custom w-100 mb-2">Comprar</a>
+                    <a class="btn btn-custom w-100" href="cesta.php?accion=añadir&id=<?= $vehiculo['idVehiculo'] ?>">Añadir a la cesta</a>
                 <?php else: ?>
                     <p class="fw-bold text-danger mb-2">No disponible para compra</p>
                 <?php endif; ?>

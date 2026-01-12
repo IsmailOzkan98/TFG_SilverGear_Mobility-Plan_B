@@ -23,6 +23,7 @@ require_once 'includes/common.php';
 <body>
     <!-- Contenedores -->
 
+    <!-- Header -->
     <div id="header-container">
         <header class="py-3" style="background: var(--c-light); color: var(--c-dark);">
             <nav class="navbar navbar-expand-lg">
@@ -73,7 +74,7 @@ require_once 'includes/common.php';
                                     <a href="pages/tiendaComprar.php" class="nav-link me-3 mb-1">Comprar</a>
                                 </li>
                                 <li class="nav-item">
-                                    <a href="#" class="nav-link me-3 mb-1">🛒</a>
+                                    <a href="pages/cesta.php" class="nav-link me-3 mb-1">🛒</a>
                                 </li>
                                 <li class="nav-item">
                                     <a class="nav-link me-3 mb-1" href="includes/logout.php">Log Out</a>

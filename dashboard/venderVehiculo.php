@@ -30,15 +30,23 @@ $matriculaRuta = preg_replace('/[^A-Z0-9\-]/i', '_', $matricula);
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     try {
         $vehiculo->notasInternas = $_POST['notasInternas'] ?? $vehiculo->notasInternas;
+
+        $vehiculo->precioVenta = $_POST['precioVenta'] ?? $vehiculo->precioVenta;
+        $stmt = $pdo->prepare("UPDATE Vehiculo SET precioVenta = :precioVenta WHERE idVehiculo = :idVehiculo");
+        $stmt->execute([
+            ':precioVenta' => $vehiculo->precioVenta,
+            ':idVehiculo' => $idVehiculo
+        ]);
+
         $vehiculo->manipuladoPor = $_SESSION['usuario']['dni'] ?? null;
 
-        
+
         $stmtEstado = $pdo->prepare("SELECT idEstado FROM EstadoVehiculo WHERE nombreEstado='VENTAS'");
         $stmtEstado->execute();
         $idVentas = $stmtEstado->fetchColumn();
         if (!$idVentas) throw new Exception("ERROR: Estado VENTAS no encontrado");
 
-        
+
         cambiarEstadoVehiculo($pdo, $vehiculo, $idVentas, $vehiculo->manipuladoPor, $vehiculo->notasInternas);
 
         // Subida de imagenes
@@ -65,7 +73,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
 
         $mensaje = "Vehículo puesto a la venta e imágenes subidas correctamente!";
-
     } catch (Exception $e) {
         $errores['general'] = $e->getMessage();
     }
@@ -79,92 +86,105 @@ $imagenes = $stmtImgs->fetchAll(PDO::FETCH_ASSOC);
 ?>
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Poner a la venta</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
 </head>
+
 <body class="bg-light">
 
-<nav class="navbar navbar-expand-lg navbar-dark bg-dark mb-4">
-    <div class="container-fluid">
-        <span class="navbar-brand fw-bold">SilverGear Mobility - Poner a la venta</span>
-        <div class="collapse navbar-collapse show">
-            <ul class="navbar-nav ms-auto mb-2 mb-lg-0">
-                <li class="nav-item"><a href="<?= volverSegunRol() ?>" class="nav-link">Volver</a></li>
-                <li class="nav-item"><a class="nav-link text-danger" href="../includes/logout.php">Cerrar sesión</a></li>
-            </ul>
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark mb-4">
+        <div class="container-fluid">
+            <span class="navbar-brand fw-bold">SilverGear Mobility - Poner a la venta</span>
+            <div class="collapse navbar-collapse show">
+                <ul class="navbar-nav ms-auto mb-2 mb-lg-0">
+                    <li class="nav-item"><a href="<?= volverSegunRol() ?>" class="nav-link">Volver</a></li>
+                    <li class="nav-item"><a class="nav-link text-danger" href="../includes/logout.php">Cerrar sesión</a></li>
+                </ul>
+            </div>
         </div>
-    </div>
-</nav>
+    </nav>
 
-<div class="container">
-    <div class="card mb-4">
-        <div class="card-body">
-            <h1 class="mb-4">Poner Vehículo a la Venta</h1>
+    <div class="container">
+        <div class="card mb-4">
+            <div class="card-body">
+                <h1 class="mb-4">Poner Vehículo a la Venta</h1>
 
-            <?php if ($mensaje): ?>
-                <div class="alert alert-success"><?= htmlspecialchars($mensaje) ?></div>
-            <?php endif; ?>
-            <?php if ($errores): ?>
-                <div class="alert alert-danger">
-                    <ul class="mb-0">
-                        <?php foreach ($errores as $campo => $error): ?>
-                            <li><?= htmlspecialchars("$campo: $error") ?></li>
-                        <?php endforeach; ?>
-                    </ul>
-                </div>
-            <?php endif; ?>
+                <?php if ($mensaje): ?>
+                    <div class="alert alert-success"><?= htmlspecialchars($mensaje) ?></div>
+                <?php endif; ?>
+                <?php if ($errores): ?>
+                    <div class="alert alert-danger">
+                        <ul class="mb-0">
+                            <?php foreach ($errores as $campo => $error): ?>
+                                <li><?= htmlspecialchars("$campo: $error") ?></li>
+                            <?php endforeach; ?>
+                        </ul>
+                    </div>
+                <?php endif; ?>
 
-            <form method="post" enctype="multipart/form-data">
-                <div class="row g-3">
-                    <div class="col-md-6">
-                        <label class="form-label">Matrícula</label>
-                        <input type="text" class="form-control" value="<?= htmlspecialchars($datosDB['matricula']) ?>" readonly>
-                    </div>
-                    <div class="col-md-6">
-                        <label class="form-label">Marca</label>
-                        <input type="text" class="form-control" value="<?= htmlspecialchars($datosDB['marca']) ?>" readonly>
-                    </div>
-                    <div class="col-md-6">
-                        <label class="form-label">Modelo</label>
-                        <input type="text" class="form-control" value="<?= htmlspecialchars($datosDB['modelo']) ?>" readonly>
-                    </div>
-                    <div class="col-md-6">
-                        <label class="form-label">Estado actual</label>
-                        <input type="text" class="form-control" value="<?= Vehiculo::obtenerNombreEstado($vehiculo->idEstado) ?>" readonly>
-                    </div>
-
-                    <div class="col-12">
-                        <label class="form-label">Notas internas</label>
-                        <textarea class="form-control" name="notasInternas"><?= htmlspecialchars($vehiculo->notasInternas) ?></textarea>
-                    </div>
-
-                    <div class="col-12">
-                        <label class="form-label">Subir imágenes del vehículo</label>
-                        <input type="file" class="form-control" name="imagenes[]" multiple>
-                    </div>
-
-                    <?php if ($imagenes): ?>
-                        <div class="col-12 mt-3">
-                            <label class="form-label">Imágenes actuales:</label>
-                            <div class="d-flex flex-wrap gap-2">
-                                <?php foreach ($imagenes as $img): ?>
-                                    <img src="<?= htmlspecialchars($img['rutaImagen']) ?>" alt="Imagen" style="height:100px;">
-                                <?php endforeach; ?>
-                            </div>
+                <form method="post" enctype="multipart/form-data">
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label">Matrícula</label>
+                            <input type="text" class="form-control" value="<?= htmlspecialchars($datosDB['matricula']) ?>" readonly>
                         </div>
-                    <?php endif; ?>
+                        <div class="col-md-6">
+                            <label class="form-label">Marca</label>
+                            <input type="text" class="form-control" value="<?= htmlspecialchars($datosDB['marca']) ?>" readonly>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Modelo</label>
+                            <input type="text" class="form-control" value="<?= htmlspecialchars($datosDB['modelo']) ?>" readonly>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Estado actual</label>
+                            <input type="text" class="form-control" value="<?= Vehiculo::obtenerNombreEstado($vehiculo->idEstado) ?>" readonly>
+                        </div>
 
-                    <div class="col-12">
-                        <button type="submit" class="btn btn-success mt-3">Poner a la venta</button>
+                        <div class="col-md-6">
+                            <label class="form-label">Precio de venta (€)</label>
+                            <input type="number" step="0.01" class="form-control" name="precioVenta" value="<?= htmlspecialchars($vehiculo->precioVenta ?? '') ?>">
+                        </div>
+
+                        <div class="col-md-6">
+                            <label class="form-label">Precio de adquisicion (€)</label>
+                            <input type="number" class="form-control" value="<?= htmlspecialchars($vehiculo->precioAdquisicion) ?>" readonly>
+                        </div>
+
+                        <div class="col-12">
+                            <label class="form-label">Notas internas</label>
+                            <textarea class="form-control" name="notasInternas"><?= htmlspecialchars($vehiculo->notasInternas) ?></textarea>
+                        </div>
+
+                        <div class="col-12">
+                            <label class="form-label">Subir imágenes del vehículo</label>
+                            <input type="file" class="form-control" name="imagenes[]" multiple>
+                        </div>
+
+                        <?php if ($imagenes): ?>
+                            <div class="col-12 mt-3">
+                                <label class="form-label">Imágenes actuales:</label>
+                                <div class="d-flex flex-wrap gap-2">
+                                    <?php foreach ($imagenes as $img): ?>
+                                        <img src="<?= htmlspecialchars($img['rutaImagen']) ?>" alt="Imagen" style="height:100px;">
+                                    <?php endforeach; ?>
+                                </div>
+                            </div>
+                        <?php endif; ?>
+
+                        <div class="col-12">
+                            <button type="submit" class="btn btn-success mt-3">Poner a la venta</button>
+                        </div>
                     </div>
-                </div>
-            </form>
+                </form>
+            </div>
         </div>
     </div>
-</div>
 
 </body>
+
 </html>

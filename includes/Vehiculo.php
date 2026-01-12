@@ -20,6 +20,7 @@ class Vehiculo {
     public $fechaProximaRevision;
     public $imagenPrincipal;
     public $precioAdquisicion;
+    public $precioVenta;
     public $fechaAdquisicion;
     public $contadorReservas;
     public $notasInternas;
@@ -55,6 +56,7 @@ class Vehiculo {
         $this->fechaProximaRevision = $datos['fechaProximaRevision'] ?? null;
         $this->imagenPrincipal = $datos['imagenPrincipal'] ?? null;
         $this->precioAdquisicion = $datos['precioAdquisicion'] ?? 0;
+        $this->precioVenta = $datos['precioVenta'] ?? null;
         $this->fechaAdquisicion = $datos['fechaAdquisicion'] ?? null;
         $this->contadorReservas = $datos['contadorReservas'] ?? 0;
         $this->notasInternas = $datos['notasInternas'] ?? '';

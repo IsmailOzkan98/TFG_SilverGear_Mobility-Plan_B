@@ -1,7 +1,7 @@
 <?php
 require_once '../includes/common.php';
 require_once '../includes/security.php';
-requireRole(['admin', 'cliente', 'limpieza', 'ventas', 'mecanico', 'dropoff']);
+requireRole(['admin', 'cliente', 'ventas', 'mecanico']);
 
 $pdo = getPDO();
 
@@ -57,13 +57,14 @@ if (!empty($_GET['categoria'])) {
 
 //por precio
 if (!empty($_GET['precio_min'])) {
-    $where[] = "v.precioAdquisicion >= :precio_min";
+    $where[] = "v.precioVenta >= :precio_min";
     $params[':precio_min'] = $_GET['precio_min'];
 }
 if (!empty($_GET['precio_max'])) {
-    $where[] = "v.precioAdquisicion <= :precio_max";
+    $where[] = "v.precioVenta <= :precio_max";
     $params[':precio_max'] = $_GET['precio_max'];
 }
+
 
 //por los kms
 if (!empty($_GET['km_min'])) {
@@ -110,6 +111,7 @@ $vehiculos = $stmt->fetchAll(PDO::FETCH_ASSOC);
 ?>
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -123,6 +125,7 @@ $vehiculos = $stmt->fetchAll(PDO::FETCH_ASSOC);
     <link rel="stylesheet" href="../css/style.css">
 
 </head>
+
 <body>
     <div id="header-container"></div>
     <div id="main-container">
@@ -211,7 +214,10 @@ $vehiculos = $stmt->fetchAll(PDO::FETCH_ASSOC);
                                         <div class="card-body">
                                             <h6 class="card-title mb-1"><?= htmlspecialchars($vehiculo['marca'] . ' ' . $vehiculo['modelo']) ?></h6>
                                             <p class="mb-1"><?= htmlspecialchars($vehiculo['nombreCategoria']) ?></p>
-                                            <p class="fw-bold mb-0"><?= number_format($vehiculo['precioAdquisicion'], 2) ?>€</p>
+                                            <p class="fw-bold mb-0">
+                                                <?= $vehiculo['precioVenta'] !== null ? number_format($vehiculo['precioVenta'], 2) . '€' : 'N/D' ?>
+                                            </p>
+
                                             <p class="fw-bold mb-0"><?= number_format($vehiculo['kmActual']) ?> km</p>
                                             <br>
                                             <?php if ($vehiculo['disponibilidad']): ?>
@@ -234,4 +240,5 @@ $vehiculos = $stmt->fetchAll(PDO::FETCH_ASSOC);
         </div>
     </div>
 </body>
+
 </html>

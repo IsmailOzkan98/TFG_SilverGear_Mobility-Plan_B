@@ -188,3 +188,19 @@ CREATE TABLE IF NOT EXISTS Vehiculo_Imagenes (
     FOREIGN KEY (idVehiculo) REFERENCES Vehiculo(idVehiculo) ON DELETE CASCADE
 );
 
+
+CREATE TABLE IF NOT EXISTS Usuario_Eliminado (
+    idUsuarioOriginal INT NOT NULL,
+    dni VARCHAR(20) NOT NULL,
+    nombre VARCHAR(100),
+    apellidos VARCHAR(100),
+    fechaEliminacion DATETIME NOT NULL DEFAULT NOW()
+);
+
+INSERT INTO Usuario (nombre, apellidos, dni, direccion, ciudad, pais, telefono, email, fechaNacimiento, fechaCarnet, contrasena, idRol)
+VALUES ('Usuario', 'Eliminado', '00000000X', 'N/A', 'N/A', 'N/A', '000000000', 'eliminado@system.local', '1900-01-01', '1900-01-01', 'N/A', 2)
+ON DUPLICATE KEY UPDATE idUsuario = idUsuario;
+
+ALTER TABLE Vehiculo ADD COLUMN precioVenta DECIMAL(10,2) DEFAULT NULL;
+
+
