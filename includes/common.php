@@ -310,8 +310,8 @@ function volverSegunRol(?string $rol = null): string
 
     // Array de roles y sus paginas
     $dashboards = [
-        'admin' => 'dashboardAdmin.php',
-        'mecanico' => 'dashboardMecanico.php',
+        'admin' => '../dashboard/dashboardAdmin.php',
+        'mecanico' => '../dashboard/dashboardMecanico.php',
     ];
 
 

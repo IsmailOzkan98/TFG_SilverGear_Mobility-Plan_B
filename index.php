@@ -1,5 +1,6 @@
 <?php
 require_once 'includes/common.php';
+require_once 'includes/security.php';
 ?>
 
 <!DOCTYPE html>
@@ -55,6 +56,11 @@ require_once 'includes/common.php';
 
                     <div class="collapse navbar-collapse justify-content-end" id="navbarNav">
                         <ul class="navbar-nav text-center">
+                            <?php if (getUserRole() === 'admin'): ?>
+                                <li class="nav-item">
+                                    <a class="nav-link fw-bold text-warning" href="<?= volverSegunRol() ?>">Volver a Dashboard Admin</a>
+                                </li>
+                            <?php endif; ?>
                             <li class="nav-item">
                                 <a href="index.php" class="nav-link me-3 mb-1">Home</a>
                             </li>
