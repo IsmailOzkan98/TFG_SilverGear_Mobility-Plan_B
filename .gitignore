@@ -1,3 +1,6 @@
 # .gitignore
 .env
 apikeys.php
+composer.lock
+vendor
+TEST_Stripe_index.php

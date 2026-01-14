@@ -6,6 +6,7 @@ requireRole(['admin', 'mecanico', 'ventas', 'dropoff', 'limpieza', 'cliente']);
 
 $pdo = getPDO();
 
+
 $usuarioSesion = $_SESSION['usuario'];
 $idUsuario = $usuarioSesion['idUsuario'];
 
@@ -73,9 +74,20 @@ $historial = $stmt->fetchAll(PDO::FETCH_ASSOC);
                 </p>
 
                 <div class="d-flex justify-content-center gap-3 mb-5">
-                    <a href="tiendaAlquiler.php" class="btn btn-custom">Volver a tienda</a>
+                    <a href="#" class="btn btn-custom">Alquilar Vehiculo</a>
+                    <a href="tiendaComprar.php" class="btn btn-custom">Comprar Vehiculo</a>
                     <a href="editarPerfil.php?dni=<?= urlencode($usuario['dni']) ?>" class="btn btn-custom">Editar perfil</a>
+                    <a href="cesta.php" class="btn btn-custom">Mi Cesta</a>
                 </div>
+
+                <?php if ($_SESSION['usuario']['rol'] === 'cliente'): ?>
+                    <div class="d-flex justify-content-center mt-4">
+                        <a href="confirmarEliminarUsuario.php" class="btn btn-danger">
+                            Eliminar mi cuenta
+                        </a>
+                    </div>
+
+                <?php endif; ?>
 
 
                 <h3 class="mb-3">Mis reservas</h3>

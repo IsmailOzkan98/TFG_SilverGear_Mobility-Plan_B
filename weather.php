@@ -1,9 +1,9 @@
 <?php
-
+require_once __DIR__ . '/apikeys.php';
 function getWeather() {
 
     $city = "Alicante";
-    $apiKey = "ad21d76160cbf5e6962cc15717035bfe";
+    $apiKey = OPENWEATHER_API_KEY;
     $url = "https://api.openweathermap.org/data/2.5/weather?q=$city&units=metric&lang=es&appid=$apiKey";
 
     $response = file_get_contents($url);

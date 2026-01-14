@@ -203,4 +203,11 @@ ON DUPLICATE KEY UPDATE idUsuario = idUsuario;
 
 ALTER TABLE Vehiculo ADD COLUMN precioVenta DECIMAL(10,2) DEFAULT NULL;
 
+USE gestion_vehiculos;
+
+
+INSERT INTO EstadoVehiculo (nombreEstado) VALUES
+('VENDIDO'),
+('ALQUILADO')
+ON DUPLICATE KEY UPDATE nombreEstado = nombreEstado;
 

@@ -79,8 +79,7 @@ $activas = $stmt->fetch(PDO::FETCH_ASSOC)['total'];
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
 </head>
 
-<script src="../js/usuarios.js"></script>
-<script src="../js/vehiculos.js"></script>
+
 
 <body class="bg-light">
 
@@ -214,7 +213,11 @@ $activas = $stmt->fetch(PDO::FETCH_ASSOC)['total'];
                                             <td><?= $row['nombreRol'] ?></td>
                                             <td>
                                                 <a href="editarUsuario.php?dni=<?= urlencode($row['dni']) ?>" class="btn btn-sm btn-secondary">Editar</a>
-                                                <button class="btn btn-sm btn-danger" onclick="confirmarEliminar('<?= $row['idUsuario'] ?>','<?= htmlspecialchars($row['nombre'] . ' ' . $row['apellidos']) ?>')">Eliminar</button>
+                                                
+                                                <button class="btn btn-sm btn-danger"
+                                                    onclick="window.location.href='../pages/confirmarEliminarUsuario.php?idUsuario=<?= $row['idUsuario'] ?>'">
+                                                    Eliminar
+                                                </button>
                                             </td>
                                         </tr>
                                     <?php endforeach; ?>
@@ -271,7 +274,12 @@ $activas = $stmt->fetch(PDO::FETCH_ASSOC)['total'];
                                             <td><?= $row['email'] ?></td>
                                             <td>
                                                 <a href="editarUsuario.php?dni=<?= urlencode($row['dni']) ?>" class="btn btn-sm btn-secondary">Editar</a>
-                                                <button class="btn btn-sm btn-danger" onclick="confirmarEliminar('<?= $row['idUsuario'] ?>','<?= htmlspecialchars($row['nombre'] . ' ' . $row['apellidos']) ?>','<?= $row['dni'] ?>')">Eliminar</button>
+
+                                                <button class="btn btn-sm btn-danger"
+                                                    onclick="window.location.href='../pages/confirmarEliminarUsuario.php?idUsuario=<?= $row['idUsuario'] ?>'">
+                                                    Eliminar
+                                                </button>
+                                                
                                             </td>
                                         </tr>
                                     <?php endforeach; ?>
@@ -441,6 +449,8 @@ $activas = $stmt->fetch(PDO::FETCH_ASSOC)['total'];
 
     </div>
 
+    <script src="../js/usuarios.js"></script>
+    <script src="../js/vehiculos.js"></script>
 </body>
 
 </html>

@@ -1,6 +1,7 @@
 <?php
 require_once '../includes/common.php';
 require_once '../includes/security.php';
+require_once '../includes/Vehiculo.php';
 requireRole(['admin', 'cliente', 'ventas', 'mecanico']);
 
 $pdo = getPDO();
@@ -10,7 +11,44 @@ if (!isset($_SESSION['cesta'])) {
     $_SESSION['cesta'] = [];
 }
 
+//Exito o fail STRIPE
+if (isset($_GET['success'])) {
+    $procesado = true;
 
+    $stmtEstado = $pdo->prepare("SELECT idEstado FROM EstadoVehiculo WHERE nombreEstado='VENDIDO'");
+    $stmtEstado->execute();
+    $idVendido = $stmtEstado->fetchColumn();
+
+    if ($idVendido) {
+        foreach ($_SESSION['cesta'] as $idVehiculo => $_dummy) {
+            $stmt = $pdo->prepare("SELECT * FROM Vehiculo WHERE idVehiculo = :idVehiculo");
+            $stmt->execute([':idVehiculo' => $idVehiculo]);
+            $datos = $stmt->fetch(PDO::FETCH_ASSOC);
+
+            if ($datos) {
+                $vehiculo = new Vehiculo($datos, $pdo);
+
+                $dniTrabajador = $_SESSION['usuario']['dni'] ?? null;
+                cambiarEstadoVehiculo(
+                    $pdo,
+                    $vehiculo,
+                    $idVendido,
+                    $dniTrabajador,
+                    'Vehiculo ha sido vendido'
+                );
+            }
+        }
+    }
+
+    $_SESSION['cesta'] = [];
+}
+
+
+if (isset($_GET['cancel'])) {
+    $cancelado = true;
+}
+
+//añadir, quitar, vaciar
 $accion = $_GET['accion'] ?? null;
 $idVehiculo = $_GET['id'] ?? null;
 
@@ -29,13 +67,10 @@ if ($accion) {
         case 'vaciar':
             $_SESSION['cesta'] = [];
             break;
-        case 'procesar':
-            $_SESSION['cesta'] = []; 
-            $procesado = true;
-            break;
     }
 }
 
+//calcular total
 $vehiculosCesta = [];
 $total = 0;
 
@@ -56,6 +91,7 @@ if (!empty($_SESSION['cesta'])) {
 
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
     <meta charset="UTF-8">
     <title>Mi Cesta</title>
@@ -63,54 +99,84 @@ if (!empty($_SESSION['cesta'])) {
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="../css/style.css">
 </head>
+
 <body>
-<div id="header-container"></div>
+    <div id="header-container"></div>
 
-<div class="container my-5">
-    <h2 class="mb-4">Mi Cesta</h2>
+    <div class="container my-5">
+        <h2 class="mb-4">Mi Cesta</h2>
 
-    <?php if (isset($procesado) && $procesado): ?>
-        <div class="alert alert-success">¡Compra procesada con éxito!</div>
-    <?php endif; ?>
+        
+        <?php if (isset($procesado) && $procesado): ?>
+            <div class="alert alert-success">¡Compra procesada con éxito!</div>
+        <?php endif; ?>
+        <?php if (isset($cancelado) && $cancelado): ?>
+            <div class="alert alert-warning">Pago cancelado. La cesta no se ha vaciado.</div>
+        <?php endif; ?>
 
-    <?php if (empty($vehiculosCesta)): ?>
-        <p>Tu cesta está vacía.</p>
-        <a href="tiendaComprar.php" class="btn btn-custom">Volver a la tienda</a>
-    <?php else: ?>
-        <div class="glass p-4">
-            <table class="table table-striped mb-3">
-                <thead>
-                    <tr>
-                        <th>Vehiculo</th>
-                        <th>Precio</th>
-                        <th>Acciones</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <?php foreach ($vehiculosCesta as $v): ?>
+        <?php if (empty($vehiculosCesta)): ?>
+            <p>Tu cesta está vacía.</p>
+            <a href="tiendaComprar.php" class="btn btn-custom">Volver a la tienda</a>
+            <a href="miPerfil.php" class="btn btn-custom">Volver a mi perfil</a>
+        <?php else: ?>
+            <div class="glass p-4">
+                <table class="table table-striped mb-3">
+                    <thead>
                         <tr>
-                            <td><?= htmlspecialchars($v['marca'].' '.$v['modelo']) ?></td>
-                            <td><?= number_format($v['precioVenta'], 2) ?> €</td>
-                            <td>
-                                <a href="cesta.php?accion=quitar&id=<?= $v['idVehiculo'] ?>" class="btn btn-custom btn-sm">Quitar</a>
-                            </td>
+                            <th>Vehículo</th>
+                            <th>Precio</th>
+                            <th>Acciones</th>
                         </tr>
-                    <?php endforeach; ?>
-                </tbody>
-            </table>
+                    </thead>
+                    <tbody>
+                        <?php foreach ($vehiculosCesta as $v): ?>
+                            <tr>
+                                <td><?= htmlspecialchars($v['marca'] . ' ' . $v['modelo']) ?></td>
+                                <td><?= number_format($v['precioVenta'], 2) ?> €</td>
+                                <td>
+                                    <a href="cesta.php?accion=quitar&id=<?= $v['idVehiculo'] ?>" class="btn btn-custom btn-sm">Quitar</a>
+                                </td>
+                            </tr>
+                        <?php endforeach; ?>
+                    </tbody>
+                </table>
 
-            <h4>Total: <?= number_format($total, 2) ?> €</h4>
+                <h4>Total: <?= number_format($total, 2) ?> €</h4>
 
-            <div class="mt-3 d-flex gap-2 flex-wrap">
-                <a href="cesta.php?accion=vaciar" class="btn btn-custom">Vaciar cesta</a>
-                <a href="cesta.php?accion=procesar" class="btn btn-custom">Procesar compra</a>
-                <a href="tiendaComprar.php" class="btn btn-custom">Seguir comprando</a>
+                <div class="mt-3 d-flex gap-2 flex-wrap">
+                    <a href="cesta.php?accion=vaciar" class="btn btn-custom">Vaciar cesta</a>
+                    <a href="tiendaComprar.php" class="btn btn-custom">Seguir comprando</a>
+                    <button id="checkout-button" class="btn btn-custom">
+                        Processar Pago
+                    </button>
+                </div>
             </div>
-        </div>
-    <?php endif; ?>
-</div>
+        <?php endif; ?>
+    </div>
 
-<div id="footer-container"></div>
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <div id="footer-container"></div>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://js.stripe.com/v3/"></script>
+
+    <script>
+        const btn = document.getElementById('checkout-button');
+        if (btn) {
+            const stripe = Stripe('<?= STRIPE_PUBLISHABLE_KEY ?>');
+
+            btn.addEventListener('click', () => {
+                fetch('../includes/crear_pago.php')
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.error) {
+                            alert(data.error);
+                            return;
+                        }
+                        stripe.redirectToCheckout({ sessionId: data.id });
+                    })
+                    .catch(err => console.error(err));
+            });
+        }
+    </script>
 </body>
+
 </html>

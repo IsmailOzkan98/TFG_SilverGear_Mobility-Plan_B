@@ -5,8 +5,15 @@ if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
 
+//Open WeatherMap
 require_once __DIR__ . "/../weather.php";
 $weather = getWeather();
+
+//Stripe
+require_once __DIR__ . '/../vendor/autoload.php'; 
+require_once __DIR__ . '/../apikeys.php'; 
+
+
 
 function getPDO()
 {
@@ -312,6 +319,7 @@ function volverSegunRol(?string $rol = null): string
     $dashboards = [
         'admin' => '../dashboard/dashboardAdmin.php',
         'mecanico' => '../dashboard/dashboardMecanico.php',
+        'cliente' => '../pages/miPerfil.php',
     ];
 
 
