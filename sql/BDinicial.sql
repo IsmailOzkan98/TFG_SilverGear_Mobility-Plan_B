@@ -211,3 +211,12 @@ INSERT INTO EstadoVehiculo (nombreEstado) VALUES
 ('ALQUILADO')
 ON DUPLICATE KEY UPDATE nombreEstado = nombreEstado;
 
+CREATE TABLE IF NOT EXISTS Compra (
+    idCompra INT AUTO_INCREMENT PRIMARY KEY,
+    idUsuario INT NOT NULL,
+    idVehiculo INT NOT NULL,
+    fechaCompra DATETIME NOT NULL DEFAULT NOW(),
+    precio DECIMAL(10,2) NOT NULL,
+    FOREIGN KEY (idUsuario) REFERENCES Usuario(idUsuario),
+    FOREIGN KEY (idVehiculo) REFERENCES Vehiculo(idVehiculo)
+);

@@ -107,14 +107,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     <form method="POST" class="row g-3">
 
                         <!-- Rol -->
-                        <div class="col-md-6">
-                            <label class="form-label">Rol</label>
-                            <input type="text" class="form-control"
-                                value="<?= htmlspecialchars($_SESSION['usuario']['rol']) ?>"
-                                readonly>
-                        </div>
+                        <?php if ($_SESSION['usuario']['rol'] !== 'cliente'): ?>
+                            <div class="col-md-6">
+                                <label class="form-label">Rol</label>
+                                <input type="text" class="form-control"
+                                    value="<?= htmlspecialchars($_SESSION['usuario']['rol']) ?>"
+                                    readonly>
+                            </div>
 
-                        <input type="hidden" name="idRol" value="<?= $usuarioDB['idRol'] ?>">
+                            <input type="hidden" name="idRol" value="<?= $usuarioDB['idRol'] ?>">
+                        <?php else: ?>
+                            <input type="hidden" name="idRol" value="<?= $usuarioDB['idRol'] ?>">
+                        <?php endif; ?>
+
 
 
                         <!-- DNI -->

@@ -36,12 +36,23 @@ if (isset($_GET['success'])) {
                     $dniTrabajador,
                     'Vehiculo ha sido vendido'
                 );
+
+                $stmtCompra = $pdo->prepare("
+                    INSERT INTO Compra (idUsuario, idVehiculo, precio) 
+                    VALUES (:idUsuario, :idVehiculo, :precio)
+                ");
+                $stmtCompra->execute([
+                    ':idUsuario' => $_SESSION['usuario']['idUsuario'],
+                    ':idVehiculo' => $idVehiculo,
+                    ':precio' => $vehiculo->precioVenta
+                ]);
             }
         }
     }
 
     $_SESSION['cesta'] = [];
 }
+
 
 
 if (isset($_GET['cancel'])) {

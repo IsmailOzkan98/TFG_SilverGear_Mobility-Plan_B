@@ -41,6 +41,17 @@ $stmt = $pdo->prepare("
 ");
 $stmt->execute([$idUsuario]);
 $historial = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+$stmt = $pdo->prepare("
+    SELECT c.idCompra, v.marca, v.modelo, c.precio, c.fechaCompra
+    FROM Compra c
+    JOIN Vehiculo v ON c.idVehiculo = v.idVehiculo
+    WHERE c.idUsuario = ?
+    ORDER BY c.fechaCompra DESC
+");
+$stmt->execute([$idUsuario]);
+$compras = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
 ?>
 
 <!DOCTYPE html>
@@ -134,6 +145,24 @@ $historial = $stmt->fetchAll(PDO::FETCH_ASSOC);
                                 Reserva #<?= $h['idReserva'] ?> —
                                 <?= $h['fechaInicio'] ?> / <?= $h['fechaFin'] ?> —
                                 <?= $h['estadoReserva'] ?>
+                            </li>
+                        <?php endforeach; ?>
+                    <?php endif; ?>
+                </ul>
+
+                <h3 class="mb-3">Mis compras realizadas</h3>
+
+                <ul class="list-group mb-4">
+                    <?php if (empty($compras)): ?>
+                        <li class="list-group-item text-center text-muted">
+                            No has comprado ningún vehículo
+                        </li>
+                    <?php else: ?>
+                        <?php foreach ($compras as $compra): ?>
+                            <li class="list-group-item">
+                                <?= htmlspecialchars($compra['marca'] . ' ' . $compra['modelo']) ?> —
+                                <?= number_format($compra['precio'], 2) ?> € —
+                                <?= $compra['fechaCompra'] ?>
                             </li>
                         <?php endforeach; ?>
                     <?php endif; ?>

@@ -4,6 +4,8 @@ require_once '../includes/security.php';
 requireRole(['admin']);
 
 $pdo = getPDO();
+$testeoPagina = true;
+$usuarioProtegido = "00000000X";
 
 // Empleados
 $filtroDNIEmpleado = $_GET['dniEmpleado'] ?? '';
@@ -66,6 +68,18 @@ $reservas = $stmt->fetchAll(PDO::FETCH_ASSOC);
 // Reservas activas
 $stmt = $pdo->query("SELECT COUNT(*) as total FROM Reserva WHERE estadoReserva='Activa'");
 $activas = $stmt->fetch(PDO::FETCH_ASSOC)['total'];
+
+
+// Compras
+$stmt = $pdo->query("
+    SELECT c.idCompra, u.nombre, u.apellidos, u.dni, v.marca, v.modelo, v.matricula, c.precio, c.fechaCompra
+    FROM Compra c
+    JOIN Usuario u ON c.idUsuario = u.idUsuario
+    JOIN Vehiculo v ON c.idVehiculo = v.idVehiculo
+    ORDER BY c.fechaCompra DESC
+");
+$compras = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
 ?>
 
 <!DOCTYPE html>
@@ -193,7 +207,7 @@ $activas = $stmt->fetch(PDO::FETCH_ASSOC)['total'];
                             </div>
                         </form>
 
-                        <div class="table-responsive">
+                        <div class="table-responsive" style="max-height: 400px; overflow-y: auto;">
                             <table class="table table-striped align-middle">
                                 <thead class="table-dark">
                                     <tr>
@@ -212,13 +226,15 @@ $activas = $stmt->fetch(PDO::FETCH_ASSOC)['total'];
                                             <td><?= $row['email'] ?></td>
                                             <td><?= $row['nombreRol'] ?></td>
                                             <td>
-                                                <a href="editarUsuario.php?dni=<?= urlencode($row['dni']) ?>" class="btn btn-sm btn-secondary">Editar</a>
-                                                
-                                                <button class="btn btn-sm btn-danger"
-                                                    onclick="window.location.href='../pages/confirmarEliminarUsuario.php?idUsuario=<?= $row['idUsuario'] ?>'">
-                                                    Eliminar
-                                                </button>
+                                                <?php if ($row['nombreRol'] !== 'admin'): ?>
+                                                    <a href="editarUsuario.php?dni=<?= urlencode($row['dni']) ?>" class="btn btn-sm btn-secondary mb-2">Editar</a>
+                                                    <button class="btn btn-sm btn-danger mb-2"
+                                                        onclick="window.location.href='../pages/confirmarEliminarUsuario.php?idUsuario=<?= $row['idUsuario'] ?>'">
+                                                        Eliminar
+                                                    </button>
+                                                <?php endif; ?>
                                             </td>
+
                                         </tr>
                                     <?php endforeach; ?>
                                 </tbody>
@@ -255,7 +271,7 @@ $activas = $stmt->fetch(PDO::FETCH_ASSOC)['total'];
                             </div>
                         </form>
 
-                        <div class="table-responsive">
+                        <div class="table-responsive" style="max-height: 400px; overflow-y: auto;">
                             <table class="table table-striped align-middle">
 
                                 <thead class="table-dark">
@@ -272,14 +288,16 @@ $activas = $stmt->fetch(PDO::FETCH_ASSOC)['total'];
                                             <td><?= $row['dni'] ?></td>
                                             <td><?= $row['nombre'] . ' ' . $row['apellidos'] ?></td>
                                             <td><?= $row['email'] ?></td>
-                                            <td>
-                                                <a href="editarUsuario.php?dni=<?= urlencode($row['dni']) ?>" class="btn btn-sm btn-secondary">Editar</a>
+                                            <?php $usuarioProtegido = "00000000X"; ?>
 
-                                                <button class="btn btn-sm btn-danger"
-                                                    onclick="window.location.href='../pages/confirmarEliminarUsuario.php?idUsuario=<?= $row['idUsuario'] ?>'">
-                                                    Eliminar
-                                                </button>
-                                                
+                                            <td>
+                                                <?php if ($row['dni'] !== $usuarioProtegido): ?>
+                                                    <a href="editarUsuario.php?dni=<?= urlencode($row['dni']) ?>" class="btn btn-sm btn-secondary mb-2">Editar</a>
+                                                    <button class="btn btn-sm btn-danger mb-2"
+                                                        onclick="window.location.href='../pages/confirmarEliminarUsuario.php?idUsuario=<?= $row['idUsuario'] ?>'">
+                                                        Eliminar
+                                                    </button>
+                                                <?php endif; ?>
                                             </td>
                                         </tr>
                                     <?php endforeach; ?>
@@ -360,7 +378,7 @@ $activas = $stmt->fetch(PDO::FETCH_ASSOC)['total'];
 
                         </form>
 
-                        <div class="table-responsive">
+                        <div class="table-responsive" style="max-height: 400px; overflow-y: auto;">
                             <table class="table table-striped align-middle">
                                 <thead class="table-dark">
                                     <tr>
@@ -387,10 +405,26 @@ $activas = $stmt->fetch(PDO::FETCH_ASSOC)['total'];
                                             <td><?= $row['nombreCategoria'] ?></td>
                                             <td><?= $row['disponibilidad'] ? 'Disponible' : 'No disponible' ?></td>
                                             <td>
-                                                <a href="editarVehiculo.php?idVehiculo=<?= $row['idVehiculo'] ?>" class="btn btn-sm btn-secondary">Editar</a>
-                                                <a href="venderVehiculo.php?idVehiculo=<?= $row['idVehiculo'] ?>" class="btn btn-sm btn-secondary">Vender</a>
-                                                <a href="historialVehiculo.php?idVehiculo=<?= $row['idVehiculo'] ?>" class="btn btn-sm btn-secondary">Ver Historial</a>
-                                                <button class="btn btn-sm btn-danger" onclick="confirmarBaja('<?= $row['idVehiculo'] ?>')"> Dar de baja</button>
+                                                <?php if ($testeoPagina): ?>
+                                                    <a href="editarVehiculo.php?idVehiculo=<?= $row['idVehiculo'] ?>" class="btn btn-sm btn-secondary mb-2">Editar</a>
+                                                    <a href="venderVehiculo.php?idVehiculo=<?= $row['idVehiculo'] ?>" class="btn btn-sm btn-secondary mb-2">Vender</a>
+                                                    <a href="historialVehiculo.php?idVehiculo=<?= $row['idVehiculo'] ?>" class="btn btn-sm btn-secondary mb-2">Ver Historial</a>
+                                                    <button class="btn btn-sm btn-danger mb-2" onclick="confirmarBaja('<?= $row['idVehiculo'] ?>')">Dar de baja</button>
+                                                <?php else: ?>
+                                                    <?php if ($row['nombreEstado'] !== 'BAJA' && $row['nombreEstado'] !== 'VENDIDO'): ?>
+                                                        <a href="editarVehiculo.php?idVehiculo=<?= $row['idVehiculo'] ?>" class="btn btn-sm btn-secondary mb-2">Editar</a>
+                                                    <?php endif; ?>
+
+                                                    <?php if ($row['nombreEstado'] !== 'VENTAS' && $row['nombreEstado'] !== 'BAJA' && $row['nombreEstado'] !== 'VENDIDO'): ?>
+                                                        <a href="venderVehiculo.php?idVehiculo=<?= $row['idVehiculo'] ?>" class="btn btn-sm btn-secondary mb-2">Vender</a>
+                                                    <?php endif; ?>
+
+                                                    <?php if ($row['nombreEstado'] !== 'BAJA' && $row['nombreEstado'] !== 'VENDIDO'): ?>
+                                                        <button class="btn btn-sm btn-danger mb-2" onclick="confirmarBaja('<?= $row['idVehiculo'] ?>')">Dar de baja</button>
+                                                    <?php endif; ?>
+
+                                                    <a href="historialVehiculo.php?idVehiculo=<?= $row['idVehiculo'] ?>" class="btn btn-sm btn-secondary mb-2">Ver Historial</a>
+                                                <?php endif; ?>
                                             </td>
                                         </tr>
                                     <?php endforeach; ?>
@@ -411,7 +445,7 @@ $activas = $stmt->fetch(PDO::FETCH_ASSOC)['total'];
                     <button class="btn btn-primary">Crear Reserva</button>
                 </div>
 
-                <div class="table-responsive">
+                <div class="table-responsive" style="max-height: 400px; overflow-y: auto;">
                     <table class="table table-striped align-middle">
                         <thead class="table-dark">
                             <tr>
@@ -436,8 +470,8 @@ $activas = $stmt->fetch(PDO::FETCH_ASSOC)['total'];
                                     <td><?= $row['precioTotal'] ?>€</td>
                                     <td><?= $row['estadoReserva'] ?></td>
                                     <td>
-                                        <button class="btn btn-sm btn-secondary">Editar</button>
-                                        <button class="btn btn-sm btn-danger">Cancelar</button>
+                                        <button class="btn btn-sm btn-secondary mb-2">Editar</button>
+                                        <button class="btn btn-sm btn-danger mb-2">Cancelar</button>
                                     </td>
                                 </tr>
                             <?php endforeach; ?>
@@ -446,6 +480,44 @@ $activas = $stmt->fetch(PDO::FETCH_ASSOC)['total'];
                 </div>
             </div>
         </div>
+
+        <!-- Compras -->
+        <div class="card mb-4" id="compras">
+            <div class="card-body">
+                <h5 class="card-title mb-3">Compras Realizadas</h5>
+
+                <div class="table-responsive" style="max-height: 400px; overflow-y: auto;">
+                    <table class="table table-striped align-middle">
+                        <thead class="table-dark">
+                            <tr>
+                                <th>ID Compra</th>
+                                <th>Cliente</th>
+                                <th>DNI</th>
+                                <th>Vehículo</th>
+                                <th>Matrícula</th>
+                                <th>Precio</th>
+                                <th>Fecha</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <?php foreach ($compras as $compra): ?>
+                                <tr>
+                                    <td><?= $compra['idCompra'] ?></td>
+                                    <td><?= htmlspecialchars($compra['nombre'] . ' ' . $compra['apellidos']) ?></td>
+                                    <td><?= htmlspecialchars($compra['dni']) ?></td>
+                                    <td><?= htmlspecialchars($compra['marca'] . ' ' . $compra['modelo']) ?></td>
+                                    <td><?= htmlspecialchars($compra['matricula']) ?></td>
+                                    <td><?= number_format($compra['precio'], 2) ?>€</td>
+                                    <td><?= $compra['fechaCompra'] ?></td>
+                                </tr>
+                            <?php endforeach; ?>
+                        </tbody>
+                    </table>
+                </div>
+
+            </div>
+        </div>
+
 
     </div>
 
