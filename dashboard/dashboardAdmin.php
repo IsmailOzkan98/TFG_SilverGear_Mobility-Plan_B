@@ -106,7 +106,7 @@ $compras = $stmt->fetchAll(PDO::FETCH_ASSOC);
                 <ul class="navbar-nav ms-auto mb-2 mb-lg-0">
                     <li class="nav-item"><a class="nav-link" href="dashboardMecanico.php">Panel Mecanico</a></li>
                     <li class="nav-item"><a class="nav-link" href="../index.php">INDEX</a></li>
-                    <li class="nav-item"><a class="nav-link" href="#">ALQUILER</a></li>
+                    <li class="nav-item"><a class="nav-link" href="../pages/tiendaAlquiler.php">ALQUILER</a></li>
                     <li class="nav-item"><a class="nav-link" href="../pages/tiendaComprar.php">VENTAS</a></li>
                     <li class="nav-item"><a class="nav-link" href="#empleados">Empleados</a></li>
                     <li class="nav-item"><a class="nav-link" href="#clientes">Clientes</a></li>
