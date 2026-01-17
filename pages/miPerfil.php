@@ -85,7 +85,7 @@ $compras = $stmt->fetchAll(PDO::FETCH_ASSOC);
                 </p>
 
                 <div class="d-flex justify-content-center gap-3 mb-5">
-                    <a href="#" class="btn btn-custom">Alquilar Vehiculo</a>
+                    <a href="tiendaAlquiler.php" class="btn btn-custom">Alquilar Vehiculo</a>
                     <a href="tiendaComprar.php" class="btn btn-custom">Comprar Vehiculo</a>
                     <a href="editarPerfil.php?dni=<?= urlencode($usuario['dni']) ?>" class="btn btn-custom">Editar perfil</a>
                     <a href="cesta.php" class="btn btn-custom">Mi Cesta</a>

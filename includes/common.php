@@ -10,8 +10,8 @@ require_once __DIR__ . "/../weather.php";
 $weather = getWeather();
 
 //Stripe
-require_once __DIR__ . '/../vendor/autoload.php'; 
-require_once __DIR__ . '/../apikeys.php'; 
+require_once __DIR__ . '/../vendor/autoload.php';
+require_once __DIR__ . '/../apikeys.php';
 
 
 
@@ -190,7 +190,7 @@ function actualizarDisponibilidadVehiculo(&$vehiculo)
 
 function registrarHistorialVehiculo(PDO $pdo, $matricula, $dniTrabajador, $accion, $descripcion = '')
 {
-    
+
     $stmt = $pdo->prepare("
         INSERT INTO Vehiculo_Historial (idVehiculo, dniTrabajador, accion, descripcion, fechaHora)
         SELECT idVehiculo, :dniTrabajador, :accion, :descripcion, NOW() 
@@ -209,7 +209,7 @@ function registrarHistorialVehiculo(PDO $pdo, $matricula, $dniTrabajador, $accio
 
 function cambiarEstadoVehiculo(PDO $pdo, &$vehiculo, $nuevoEstado, $dniTrabajador = null, $descripcion = '')
 {
-    
+
 
     $vehiculo->idEstado = $nuevoEstado;
     actualizarDisponibilidadVehiculo($vehiculo);
@@ -329,4 +329,50 @@ function volverSegunRol(?string $rol = null): string
 
     // Rol desconocido 
     return 'index.php';
+}
+
+    //CALCULO PRECIO ALQUILER
+//obtener precio de la categoria
+function obtenerCategoria($idCategoria, $pdo)
+{
+    $stmt = $pdo->prepare("SELECT * FROM Categoria WHERE idCategoria = ?");
+    $stmt->execute([$idCategoria]);
+    return $stmt->fetch(PDO::FETCH_ASSOC);
+}
+
+//decuento por longitud de alquiler
+function obtenerDescuentoPorDias($categoria, $dias)
+{
+    if ($dias >= 20) return $categoria['descuentoDia20_mas'];
+    if ($dias >= 11) return $categoria['descuentoDia11_19'];
+    if ($dias >= 7)  return $categoria['descuentoDia7_10'];
+    if ($dias >= 4)  return $categoria['descuentoDia4_6'];
+    return $categoria['descuentoDia1_3'];
+}
+
+
+//precio diario segun categoria, seguro, carnet joven y duracion
+function calcularPrecioAlquiler($idCategoria, $dias, $aplicarSeguro = false, $recargoCarnetJoven = false, $pdo)
+{
+    $categoria = obtenerCategoria($idCategoria, $pdo);
+    if (!$categoria) return null;
+
+    $precio = $categoria['precioBase'];
+
+    // Aplicar incrementos
+    if ($aplicarSeguro) $precio += $categoria['incrementoSeguro'];
+    if ($recargoCarnetJoven) $precio += $categoria['recargoCarnetJoven'];
+
+    // Aplicar descuento segun dias
+    $descuento = obtenerDescuentoPorDias($categoria, $dias);
+    $precioFinal = $precio * (1 - $descuento / 100);
+
+    return round($precioFinal, 2);
+}
+
+//precio total de la reserva
+function calcularPrecioTotal($idCategoria, $dias, $aplicarSeguro = false, $recargoCarnetJoven = false, $pdo)
+{
+    $precioDia = calcularPrecioAlquiler($idCategoria, $dias, $aplicarSeguro, $recargoCarnetJoven, $pdo);
+    return $precioDia * $dias;
 }

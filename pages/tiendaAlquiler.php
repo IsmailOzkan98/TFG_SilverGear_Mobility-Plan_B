@@ -65,7 +65,7 @@ foreach ($vehiculos as $v) {
         $vehiculosUnicos[$key] = $v;
     }
 }
-$vehiculos = array_values($vehiculosUnicos); 
+$vehiculos = array_values($vehiculosUnicos);
 
 
 //filtros
