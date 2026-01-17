@@ -189,36 +189,37 @@ $categorias = $pdo->query("SELECT idCategoria, nombreCategoria FROM Categoria OR
             <!-- LISTADO -->
             <div class="col-12 col-md-9">
                 <div class="row g-4">
-
                     <?php foreach ($vehiculos as $v): ?>
                         <div class="col-12 col-sm-6 col-lg-4">
                             <div class="card h-100 vehicle-card">
-                                <div class="ratio" style="--bs-aspect-ratio: 80%;">
-                                    <img src="<?= $v['imagenPrincipal'] ?? '../images/default-car.jpg' ?>" class="img-fluid object-fit-cover" alt="Imagen de <?= htmlspecialchars($v['marca'] . ' ' . $v['modelo']) ?>">
+                                <!-- Imagen con ratio fijo -->
+                                <div class="ratio vehicle-img-ratio" style="--bs-aspect-ratio: 80%;">
+                                    <img src="<?= isset($v['imagenPrincipal']) ? '../images/vehiculos/' . htmlspecialchars($v['imagenPrincipal']) : '../images/default-car.jpg' ?>"
+                                        class="img-fluid object-fit-cover"
+                                        alt="Imagen de <?= htmlspecialchars($v['marca'] . ' ' . $v['modelo']) ?>">
                                 </div>
+
+                                <!-- Contenido de la card -->
                                 <div class="card-body">
-                                    <h6><?= htmlspecialchars($v['marca'] . ' ' . $v['modelo']) ?></h6>
-                                    <p><?= htmlspecialchars($v['nombreCategoria']) ?></p>
-                                    <p class="fw-bold">Desde <?= number_format($v['precioBase'], 2) ?>€ / día</p>
+                                    <h6 class="card-title mb-1"><?= htmlspecialchars($v['marca'] . ' ' . $v['modelo']) ?></h6>
+                                    <p class="mb-1"><?= htmlspecialchars($v['nombreCategoria']) ?></p>
+                                    <p class="fw-bold mb-0">Desde <?= number_format($v['precioBase'], 2) ?>€ / día</p>
 
                                     <?php if ($v['disponibilidad']): ?>
-                                        <a href="articuloAlquiler.php?idVehiculo=<?= $v['idVehiculo'] ?>" class="btn btn-custom w-100">Ver Detalles</a>
+                                        <a href="articuloAlquiler.php?idVehiculo=<?= $v['idVehiculo'] ?>" class="btn btn-custom w-100 mt-2">Ver Detalles</a>
                                     <?php else: ?>
-                                        <p class="text-danger fw-bold">NO DISPONIBLE</p>
+                                        <p class="text-danger fw-bold mt-2">NO DISPONIBLE</p>
                                     <?php endif; ?>
                                 </div>
                             </div>
                         </div>
                     <?php endforeach; ?>
-
-
                 </div>
             </div>
 
         </div>
-    </div>
 
-    <div id="footer-container"></div>
+        <div id="footer-container"></div>
 </body>
 
 </html>

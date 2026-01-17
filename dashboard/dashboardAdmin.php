@@ -314,9 +314,14 @@ $compras = $stmt->fetchAll(PDO::FETCH_ASSOC);
             <div class="card-body">
                 <div class="d-flex justify-content-between align-items-center mb-3">
                     <h5>Gestión de Vehículos</h5>
-                    <button class="btn btn-primary" onclick="location.href='darAltaVehiculo.php'">
-                        Añadir Vehículo
-                    </button>
+                    <div>
+                        <button class="btn btn-primary" onclick="location.href='subirFotoVehiculo.php'">
+                            Subir Fotos
+                        </button>
+                        <button class="btn btn-primary" onclick="location.href='darAltaVehiculo.php'">
+                            Añadir Vehículo
+                        </button>
+                    </div>
                 </div>
 
                 <div class="card mb-4" id="flota">

@@ -52,18 +52,15 @@ if (!$vehiculo) {
     exit;
 }
 
-// Obtener imágenes
-$stmt = $pdo->prepare("
-    SELECT rutaImagen 
-    FROM Vehiculo_Imagenes 
-    WHERE idVehiculo = :idVehiculo
-    ORDER BY idImagen ASC
-");
-$stmt->execute([':idVehiculo' => $idVehiculo]);
-$imagenes = $stmt->fetchAll(PDO::FETCH_COLUMN);
-if (empty($imagenes)) {
-    $imagenes[] = '../images/default-car.jpg';
+// Obtener imagene
+$imagenPrincipal = $vehiculo['imagenPrincipal'] ?? null;
+if (!$imagenPrincipal) {
+    $imagenPrincipal = '../images/default-car.jpg';
+} else {
+    $imagenPrincipal = '../images/vehiculos/' . $imagenPrincipal;
 }
+
+
 ?>
 
 <!DOCTYPE html>
@@ -88,7 +85,7 @@ if (empty($imagenes)) {
 
             <!-- Imagen principal -->
             <div class="col-12 col-md-6 mb-4">
-                <img src="<?= htmlspecialchars($imagenes[0]) ?>" class="d-block w-100 slider-img" alt="Imagen del vehiculo">
+                <img src="<?= htmlspecialchars($imagenPrincipal) ?>" class="d-block w-100 slider-img" alt="Imagen del vehiculo">
             </div>
 
 
