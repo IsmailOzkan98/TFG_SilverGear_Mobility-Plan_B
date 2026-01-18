@@ -331,7 +331,7 @@ function volverSegunRol(?string $rol = null): string
     return 'index.php';
 }
 
-    //CALCULO PRECIO ALQUILER
+    
 //obtener precio de la categoria
 function obtenerCategoria($idCategoria, $pdo)
 {

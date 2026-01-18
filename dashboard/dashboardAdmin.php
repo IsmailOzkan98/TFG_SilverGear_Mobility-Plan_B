@@ -60,13 +60,26 @@ $vehiculos = obtenerFlotaFiltrada($_GET);
 
 
 // Reservas
-$stmt = $pdo->query("SELECT r.*, u.nombre, u.apellidos, v.marca, v.modelo FROM Reserva r
-                     JOIN Usuario u ON r.idUsuario = u.idUsuario
-                     JOIN Vehiculo v ON r.idVehiculo = v.idVehiculo");
+$stmt = $pdo->query("
+    SELECT r.*, u.nombre, u.apellidos, u.dni, v.marca, v.modelo 
+    FROM Reserva r
+    JOIN Usuario u ON r.idUsuario = u.idUsuario
+    JOIN Vehiculo v ON r.idVehiculo = v.idVehiculo
+    WHERE r.estado IN ('NO CUBIERTA','CUBIERTA')
+    ORDER BY r.fechaInicio DESC
+");
 $reservas = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
+
+
+
+
 // Reservas activas
-$stmt = $pdo->query("SELECT COUNT(*) as total FROM Reserva WHERE estadoReserva='Activa'");
+$stmt = $pdo->query("
+    SELECT COUNT(*) as total 
+    FROM Reserva 
+    WHERE estado IN ('NO CUBIERTA','CUBIERTA')
+");
 $activas = $stmt->fetch(PDO::FETCH_ASSOC)['total'];
 
 
@@ -455,7 +468,8 @@ $compras = $stmt->fetchAll(PDO::FETCH_ASSOC);
                         <thead class="table-dark">
                             <tr>
                                 <th>ID</th>
-                                <th>Cliente</th>
+                                <th>DNI Cliente</th>
+                                <th>Nombre Cliente</th>
                                 <th>Vehículo</th>
                                 <th>Inicio</th>
                                 <th>Fin</th>
@@ -468,15 +482,19 @@ $compras = $stmt->fetchAll(PDO::FETCH_ASSOC);
                             <?php foreach ($reservas as $row): ?>
                                 <tr>
                                     <td><?= $row['idReserva'] ?></td>
-                                    <td><?= $row['nombre'] . ' ' . $row['apellidos'] ?></td>
-                                    <td><?= $row['marca'] . ' ' . $row['modelo'] ?></td>
+                                    <td><?= htmlspecialchars($row['dni']) ?></td>
+                                    <td><?= htmlspecialchars($row['nombre'] . ' ' . $row['apellidos']) ?></td>
+                                    <td><?= htmlspecialchars($row['marca'] . ' ' . $row['modelo']) ?></td>
                                     <td><?= $row['fechaInicio'] ?></td>
                                     <td><?= $row['fechaFin'] ?></td>
-                                    <td><?= $row['precioTotal'] ?>€</td>
-                                    <td><?= $row['estadoReserva'] ?></td>
+                                    <td><?= number_format($row['precioTotal'], 2) ?>€</td>
+                                    <td><?= $row['estado'] ?></td>
                                     <td>
-                                        <button class="btn btn-sm btn-secondary mb-2">Editar</button>
-                                        <button class="btn btn-sm btn-danger mb-2">Cancelar</button>
+                                        <a href="../pages/editarReserva.php?id=<?= $row['idReserva'] ?>" class="btn btn-sm btn-secondary mb-2">Editar</a>
+                                        <form method="POST" action="../includes/cancelarReserva.php" style="display:inline">
+                                            <input type="hidden" name="idReserva" value="<?= $row['idReserva'] ?>">
+                                            <button type="submit" class="btn btn-sm btn-danger mb-2">Cancelar</button>
+                                        </form>
                                     </td>
                                 </tr>
                             <?php endforeach; ?>
@@ -485,6 +503,10 @@ $compras = $stmt->fetchAll(PDO::FETCH_ASSOC);
                 </div>
             </div>
         </div>
+
+
+
+
 
         <!-- Compras -->
         <div class="card mb-4" id="compras">

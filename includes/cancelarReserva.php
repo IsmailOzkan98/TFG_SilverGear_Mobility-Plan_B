@@ -28,7 +28,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $stmt = $pdo->prepare("UPDATE Reserva SET estado = 'CANCELADA' WHERE idReserva = :idReserva");
     $stmt->execute([':idReserva' => $idReserva]);
 
-    header("Location: ../pages/miPerfil.php");
+    header("Location: " . volverSegunRol());
     exit;
 } else {
     die("Acceso no permitido.");
