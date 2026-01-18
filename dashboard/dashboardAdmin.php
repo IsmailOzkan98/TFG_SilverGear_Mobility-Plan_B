@@ -61,12 +61,14 @@ $vehiculos = obtenerFlotaFiltrada($_GET);
 
 // Reservas
 $stmt = $pdo->query("
-    SELECT r.*, u.nombre, u.apellidos, u.dni, v.marca, v.modelo 
-    FROM Reserva r
-    JOIN Usuario u ON r.idUsuario = u.idUsuario
-    JOIN Vehiculo v ON r.idVehiculo = v.idVehiculo
-    WHERE r.estado IN ('NO CUBIERTA','CUBIERTA')
-    ORDER BY r.fechaInicio DESC
+    SELECT r.*, u.nombre, u.apellidos, u.dni,
+       v.marca, v.modelo
+FROM Reserva r
+JOIN Usuario u ON r.idUsuario = u.idUsuario
+LEFT JOIN Vehiculo v ON r.idVehiculo = v.idVehiculo
+WHERE r.estado IN ('NO CUBIERTA','CUBIERTA')
+ORDER BY r.fechaInicio DESC
+
 ");
 $reservas = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
@@ -460,7 +462,8 @@ $compras = $stmt->fetchAll(PDO::FETCH_ASSOC);
             <div class="card-body">
                 <div class="d-flex justify-content-between align-items-center mb-3">
                     <h5>Gestión de Reservas</h5>
-                    <button class="btn btn-primary">Crear Reserva</button>
+
+                    <button class="btn btn-primary" onclick="location.href='crearReservaTech.php'">Crear Reserva</button>
                 </div>
 
                 <div class="table-responsive" style="max-height: 400px; overflow-y: auto;">

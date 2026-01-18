@@ -118,83 +118,83 @@ $compras = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
 
                 <h3 class="mb-3">Mis reservas</h3>
-                <ul class="list-group mb-4">
-                    <?php if (empty($reservasPendientes)): ?>
-                        <li class="list-group-item text-center text-muted">
-                            No tienes reservas pendientes
-                        </li>
-                    <?php else: ?>
-                        <?php foreach ($reservasPendientes as $r): ?>
-                            <li class="list-group-item">
-                                <div class="d-flex justify-content-between align-items-center">
-                                    <span>
-                                        Reserva #<?= $r['idReserva'] ?> —
-                                        <?= $r['fechaInicio'] ?> / <?= $r['fechaFin'] ?> —
-                                        <?= $r['estado'] ?> —
-                                        Marca: <?= htmlspecialchars($r['marcaVehiculo'] ?? $r['marcaSolicitada']) ?> —
-                                        Modelo: <?= htmlspecialchars($r['modeloVehiculo'] ?? $r['modeloSolicitado']) ?> —
-                                        Categoría: <?= htmlspecialchars($r['nombreCategoria'] ?? 'Sin categoría') ?>
-                                    </span>
-                                    <div class="d-flex gap-2">
-                                        <a href="editarReserva.php?id=<?= $r['idReserva'] ?>" class="btn btn-sm btn-custom">
-                                            Editar
-                                        </a>
-                                        <form method="POST" action="../includes/cancelarReserva.php" style="display:inline">
-                                            <input type="hidden" name="idReserva" value="<?= $r['idReserva'] ?>">
-                                            <button type="submit" class="btn btn-sm btn-custom">Cancelar</button>
-                                        </form>
-
-                                    </div>
-                                </div>
+                <div class="table-responsive" style="max-height: 400px; overflow-y: auto;">
+                    <ul class="list-group mb-4">
+                        <?php if (empty($reservasPendientes)): ?>
+                            <li class="list-group-item text-center text-muted">
+                                No tienes reservas pendientes
                             </li>
-                        <?php endforeach; ?>
-                    <?php endif; ?>
-                </ul>
+                        <?php else: ?>
+                            <?php foreach ($reservasPendientes as $r): ?>
+                                <li class="list-group-item">
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <span>
+                                            Reserva #<?= $r['idReserva'] ?> —
+                                            <?= $r['fechaInicio'] ?> / <?= $r['fechaFin'] ?> —
+                                            <?= $r['estado'] ?> —
+                                            Marca: <?= htmlspecialchars($r['marcaVehiculo'] ?? $r['marcaSolicitada']) ?> —
+                                            Modelo: <?= htmlspecialchars($r['modeloVehiculo'] ?? $r['modeloSolicitado']) ?> —
+                                            Categoría: <?= htmlspecialchars($r['nombreCategoria'] ?? 'Sin categoría') ?>
+                                        </span>
+                                        <div class="d-flex gap-2">
+                                            <a href="editarReserva.php?id=<?= $r['idReserva'] ?>" class="btn btn-sm btn-custom">
+                                                Editar
+                                            </a>
+                                            <form method="POST" action="../includes/cancelarReserva.php" style="display:inline">
+                                                <input type="hidden" name="idReserva" value="<?= $r['idReserva'] ?>">
+                                                <button type="submit" class="btn btn-sm btn-custom">Cancelar</button>
+                                            </form>
+                                        </div>
+                                    </div>
+                                </li>
+                            <?php endforeach; ?>
+                        <?php endif; ?>
+                    </ul>
+                </div>
 
                 <h3 class="mb-3">Mi historial de reservas</h3>
-                <ul class="list-group mb-3">
-                    <?php if (empty($historial)): ?>
-                        <li class="list-group-item text-center text-muted">
-                            No hay reservas anteriores
-                        </li>
-                    <?php else: ?>
-                        <?php foreach ($historial as $h): ?>
-                            <li class="list-group-item">
-                                Reserva #<?= $h['idReserva'] ?> —
-                                <?= $h['fechaInicio'] ?> / <?= $h['fechaFin'] ?> —
-                                <?= $h['estado'] ?> —
-                                Marca: <?= htmlspecialchars($h['marcaVehiculo'] ?? $h['marcaSolicitada']) ?> —
-                                Modelo: <?= htmlspecialchars($h['modeloVehiculo'] ?? $h['modeloSolicitado']) ?> —
-                                Categoría: <?=
-                                            htmlspecialchars(
-                                                $h['categoriaVehiculo'] ??
-                                                    ($h['categoriaSolicitada'] ? getNombreCategoria($h['categoriaSolicitada']) : 'Sin categoría')
-                                            )?>
+                <div class="table-responsive" style="max-height: 400px; overflow-y: auto;">
+                    <ul class="list-group mb-3">
+                        <?php if (empty($historial)): ?>
+                            <li class="list-group-item text-center text-muted">
+                                No hay reservas anteriores
                             </li>
-                        <?php endforeach; ?>
-                    <?php endif; ?>
-                </ul>
-
-
-
+                        <?php else: ?>
+                            <?php foreach ($historial as $h): ?>
+                                <li class="list-group-item">
+                                    Reserva #<?= $h['idReserva'] ?> —
+                                    <?= $h['fechaInicio'] ?> / <?= $h['fechaFin'] ?> —
+                                    <?= $h['estado'] ?> —
+                                    Marca: <?= htmlspecialchars($h['marcaVehiculo'] ?? $h['marcaSolicitada']) ?> —
+                                    Modelo: <?= htmlspecialchars($h['modeloVehiculo'] ?? $h['modeloSolicitado']) ?> —
+                                    Categoría: <?= htmlspecialchars(
+                                                    $h['categoriaVehiculo'] ??
+                                                        ($h['categoriaSolicitada'] ? getNombreCategoria($h['categoriaSolicitada']) : 'Sin categoría')
+                                                ) ?>
+                                </li>
+                            <?php endforeach; ?>
+                        <?php endif; ?>
+                    </ul>
+                </div>
 
                 <h3 class="mb-3">Mis compras realizadas</h3>
-
-                <ul class="list-group mb-4">
-                    <?php if (empty($compras)): ?>
-                        <li class="list-group-item text-center text-muted">
-                            No has comprado ningún vehículo
-                        </li>
-                    <?php else: ?>
-                        <?php foreach ($compras as $compra): ?>
-                            <li class="list-group-item">
-                                <?= htmlspecialchars($compra['marca'] . ' ' . $compra['modelo']) ?> —
-                                <?= number_format($compra['precio'], 2) ?> € —
-                                <?= $compra['fechaCompra'] ?>
+                <div class="table-responsive" style="max-height: 400px; overflow-y: auto;">
+                    <ul class="list-group mb-4">
+                        <?php if (empty($compras)): ?>
+                            <li class="list-group-item text-center text-muted">
+                                No has comprado ningún vehículo
                             </li>
-                        <?php endforeach; ?>
-                    <?php endif; ?>
-                </ul>
+                        <?php else: ?>
+                            <?php foreach ($compras as $compra): ?>
+                                <li class="list-group-item">
+                                    <?= htmlspecialchars($compra['marca'] . ' ' . $compra['modelo']) ?> —
+                                    <?= number_format($compra['precio'], 2) ?> € —
+                                    <?= $compra['fechaCompra'] ?>
+                                </li>
+                            <?php endforeach; ?>
+                        <?php endif; ?>
+                    </ul>
+                </div>
 
             </div>
         </div>
