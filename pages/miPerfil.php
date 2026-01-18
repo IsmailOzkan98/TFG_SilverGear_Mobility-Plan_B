@@ -30,11 +30,9 @@ $stmt = $pdo->prepare("
     FROM Reserva r
     LEFT JOIN Categoria c ON r.idCategoria = c.idCategoria
     WHERE r.idUsuario = ?
+      AND r.estado IN ('NO CUBIERTA', 'CUBIERTA')
     ORDER BY r.fechaInicio DESC
 ");
-$stmt->execute([$idUsuario]);
-$reservas = $stmt->fetchAll(PDO::FETCH_ASSOC);
-
 $stmt->execute([$idUsuario]);
 $reservasPendientes = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
@@ -141,9 +139,11 @@ $compras = $stmt->fetchAll(PDO::FETCH_ASSOC);
                                         <a href="editarReserva.php?id=<?= $r['idReserva'] ?>" class="btn btn-sm btn-custom">
                                             Editar
                                         </a>
-                                        <a href="cancelarReserva.php?id=<?= $r['idReserva'] ?>" class="btn btn-sm btn-custom">
-                                            Cancelar
-                                        </a>
+                                        <form method="POST" action="../includes/cancelarReserva.php" style="display:inline">
+                                            <input type="hidden" name="idReserva" value="<?= $r['idReserva'] ?>">
+                                            <button type="submit" class="btn btn-sm btn-custom">Cancelar</button>
+                                        </form>
+
                                     </div>
                                 </div>
                             </li>
@@ -165,7 +165,11 @@ $compras = $stmt->fetchAll(PDO::FETCH_ASSOC);
                                 <?= $h['estado'] ?> —
                                 Marca: <?= htmlspecialchars($h['marcaVehiculo'] ?? $h['marcaSolicitada']) ?> —
                                 Modelo: <?= htmlspecialchars($h['modeloVehiculo'] ?? $h['modeloSolicitado']) ?> —
-                                Categoría: <?= htmlspecialchars($h['categoriaVehiculo'] ?? $h['categoriaSolicitada'] ?? 'Sin categoría') ?>
+                                Categoría: <?=
+                                            htmlspecialchars(
+                                                $h['categoriaVehiculo'] ??
+                                                    ($h['categoriaSolicitada'] ? getNombreCategoria($h['categoriaSolicitada']) : 'Sin categoría')
+                                            )?>
                             </li>
                         <?php endforeach; ?>
                     <?php endif; ?>

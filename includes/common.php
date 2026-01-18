@@ -376,3 +376,12 @@ function calcularPrecioTotal($idCategoria, $dias, $aplicarSeguro = false, $recar
     $precioDia = calcularPrecioAlquiler($idCategoria, $dias, $aplicarSeguro, $recargoCarnetJoven, $pdo);
     return $precioDia * $dias;
 }
+
+//conseguir nombre de la categoria
+function getNombreCategoria($idCategoria) {
+    global $pdo;
+    $stmt = $pdo->prepare("SELECT nombreCategoria FROM Categoria WHERE idCategoria = ?");
+    $stmt->execute([$idCategoria]);
+    return $stmt->fetchColumn();
+}
+
