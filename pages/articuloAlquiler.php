@@ -100,7 +100,7 @@ if (!$imagenPrincipal) {
                     <p><strong>Descripción:</strong> <?= nl2br(htmlspecialchars($vehiculo['notasInternas'] ?? 'No hay descripción disponible')) ?></p>
 
                     <?php if ($vehiculo['disponibilidad']): ?>
-                        <form id="formReserva" class="mt-4" method="POST" action="reservaCrear.php">
+                        <form id="formReserva" class="mt-4" method="POST" action="../includes/crear_reserva.php">
                             <input type="hidden" name="idVehiculo" value="<?= $vehiculo['idVehiculo'] ?>">
 
                             <div class="mb-3">
@@ -121,13 +121,21 @@ if (!$imagenPrincipal) {
                             </div>
 
                             <div class="form-check mb-3">
-                                <input class="form-check-input" type="checkbox" value="1" id="carnetJoven" name="carnetJoven"
+                                <input type="hidden" name="carnetJoven" value="<?= $aplicaRecargoCarnetJoven ? 1 : 0 ?>">
+                                <input class="form-check-input" type="checkbox" id="carnetJoven"
                                     <?= $aplicaRecargoCarnetJoven ? 'checked' : '' ?> disabled>
                                 <label class="form-check-label" for="carnetJoven">
                                     Recargo por carnet &lt;2 años (+<?= $vehiculo['recargoCarnetJoven'] ?>%)
                                 </label>
-
                             </div>
+
+                            <input type="hidden" name="idCategoria" value="<?= htmlspecialchars($vehiculo['idCategoria']) ?>">
+                            <input type="hidden" name="marcaSolicitada" value="<?= htmlspecialchars($vehiculo['marca']) ?>">
+                            <input type="hidden" name="modeloSolicitado" value="<?= htmlspecialchars($vehiculo['modelo']) ?>">
+                            <input type="hidden" name="precioDia" id="inputPrecioDia" value="<?= number_format($vehiculo['precioBase'], 2) ?>">
+                            <input type="hidden" name="precioTotal" id="inputPrecioTotal" value="<?= number_format($vehiculo['precioBase'], 2) ?>">
+
+
 
                             <p><strong>Duración alquiler:</strong> <span id="duracionAlquiler">1</span> días</p>
                             <p><strong>Descuento por duración:</strong> <span id="descuentoDias">0</span>%</p>
@@ -183,11 +191,17 @@ if (!$imagenPrincipal) {
             let precioDia = precioBase * (1 + seguro / 100 + carnet / 100) * (1 - descuento / 100);
             let precioTotal = precioDia * dias;
 
+            // Actualizar el texto visible
             precioDiaEl.textContent = precioDia.toFixed(2);
             precioTotalEl.textContent = precioTotal.toFixed(2);
             duracionEl.textContent = dias;
             descuentoEl.textContent = descuento;
+
+            // Actualizar los hidden inputs para enviar al POST
+            document.getElementById('inputPrecioDia').value = precioDia.toFixed(2);
+            document.getElementById('inputPrecioTotal').value = precioTotal.toFixed(2);
         }
+
 
         // Actualizar al cambiar cualquiera de los inputs
         form.fechaInicio.addEventListener('change', actualizarPrecio);

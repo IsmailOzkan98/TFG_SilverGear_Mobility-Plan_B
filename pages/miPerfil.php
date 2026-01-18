@@ -22,25 +22,43 @@ if (!$usuario) {
     die('Usuario no encontrado');
 }
 
+// Reservas pendientes
 $stmt = $pdo->prepare("
-    SELECT idReserva, fechaInicio, fechaFin, estadoReserva
-    FROM Reserva
-    WHERE idUsuario = ?
-      AND estadoReserva = 'Pendiente'
-    ORDER BY fechaInicio ASC
+    SELECT r.idReserva, r.fechaInicio, r.fechaFin, r.estado,
+           r.marcaSolicitada, r.modeloSolicitado,
+           c.nombreCategoria
+    FROM Reserva r
+    LEFT JOIN Categoria c ON r.idCategoria = c.idCategoria
+    WHERE r.idUsuario = ?
+    ORDER BY r.fechaInicio DESC
 ");
+$stmt->execute([$idUsuario]);
+$reservas = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
 $stmt->execute([$idUsuario]);
 $reservasPendientes = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
+// Historial
 $stmt = $pdo->prepare("
-    SELECT idReserva, fechaInicio, fechaFin, estadoReserva
-    FROM Reserva
-    WHERE idUsuario = ?
-      AND estadoReserva <> 'Pendiente'
-    ORDER BY fechaInicio DESC
+    SELECT r.idReserva, r.fechaInicio, r.fechaFin, r.estado,
+           r.marcaSolicitada, r.modeloSolicitado, r.idCategoria AS categoriaSolicitada,
+           v.marca AS marcaVehiculo, v.modelo AS modeloVehiculo,
+           c.nombreCategoria AS categoriaVehiculo
+    FROM Reserva r
+    LEFT JOIN Vehiculo v ON r.idVehiculoAsignado = v.idVehiculo
+    LEFT JOIN Categoria c ON v.idCategoria = c.idCategoria
+    WHERE r.idUsuario = ?
+      AND r.estado <> 'NO CUBIERTA'
+    ORDER BY r.fechaInicio DESC
 ");
+
 $stmt->execute([$idUsuario]);
 $historial = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+
+
+
+
 
 $stmt = $pdo->prepare("
     SELECT c.idCompra, v.marca, v.modelo, c.precio, c.fechaCompra
@@ -102,7 +120,6 @@ $compras = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
 
                 <h3 class="mb-3">Mis reservas</h3>
-
                 <ul class="list-group mb-4">
                     <?php if (empty($reservasPendientes)): ?>
                         <li class="list-group-item text-center text-muted">
@@ -115,7 +132,10 @@ $compras = $stmt->fetchAll(PDO::FETCH_ASSOC);
                                     <span>
                                         Reserva #<?= $r['idReserva'] ?> —
                                         <?= $r['fechaInicio'] ?> / <?= $r['fechaFin'] ?> —
-                                        <?= $r['estadoReserva'] ?>
+                                        <?= $r['estado'] ?> —
+                                        Marca: <?= htmlspecialchars($r['marcaVehiculo'] ?? $r['marcaSolicitada']) ?> —
+                                        Modelo: <?= htmlspecialchars($r['modeloVehiculo'] ?? $r['modeloSolicitado']) ?> —
+                                        Categoría: <?= htmlspecialchars($r['nombreCategoria'] ?? 'Sin categoría') ?>
                                     </span>
                                     <div class="d-flex gap-2">
                                         <a href="editarReserva.php?id=<?= $r['idReserva'] ?>" class="btn btn-sm btn-custom">
@@ -131,9 +151,7 @@ $compras = $stmt->fetchAll(PDO::FETCH_ASSOC);
                     <?php endif; ?>
                 </ul>
 
-
                 <h3 class="mb-3">Mi historial de reservas</h3>
-
                 <ul class="list-group mb-3">
                     <?php if (empty($historial)): ?>
                         <li class="list-group-item text-center text-muted">
@@ -144,11 +162,17 @@ $compras = $stmt->fetchAll(PDO::FETCH_ASSOC);
                             <li class="list-group-item">
                                 Reserva #<?= $h['idReserva'] ?> —
                                 <?= $h['fechaInicio'] ?> / <?= $h['fechaFin'] ?> —
-                                <?= $h['estadoReserva'] ?>
+                                <?= $h['estado'] ?> —
+                                Marca: <?= htmlspecialchars($h['marcaVehiculo'] ?? $h['marcaSolicitada']) ?> —
+                                Modelo: <?= htmlspecialchars($h['modeloVehiculo'] ?? $h['modeloSolicitado']) ?> —
+                                Categoría: <?= htmlspecialchars($h['categoriaVehiculo'] ?? $h['categoriaSolicitada'] ?? 'Sin categoría') ?>
                             </li>
                         <?php endforeach; ?>
                     <?php endif; ?>
                 </ul>
+
+
+
 
                 <h3 class="mb-3">Mis compras realizadas</h3>
 
