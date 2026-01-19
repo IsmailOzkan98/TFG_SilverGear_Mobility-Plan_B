@@ -62,15 +62,16 @@ $vehiculos = obtenerFlotaFiltrada($_GET);
 // Reservas
 $stmt = $pdo->query("
     SELECT r.*, u.nombre, u.apellidos, u.dni,
-       v.marca, v.modelo
-FROM Reserva r
-JOIN Usuario u ON r.idUsuario = u.idUsuario
-LEFT JOIN Vehiculo v ON r.idVehiculo = v.idVehiculo
-WHERE r.estado IN ('NO CUBIERTA','CUBIERTA')
-ORDER BY r.fechaInicio DESC
-
+           v.marca, v.modelo, c.nombreCategoria
+    FROM Reserva r
+    JOIN Usuario u ON r.idUsuario = u.idUsuario
+    LEFT JOIN Vehiculo v ON r.idVehiculo = v.idVehiculo
+    LEFT JOIN Categoria c ON r.idCategoria = c.idCategoria
+    WHERE r.estado IN ('NO CUBIERTA','CUBIERTA')
+    ORDER BY r.fechaInicio DESC
 ");
 $reservas = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
 
 
 
@@ -464,51 +465,101 @@ $compras = $stmt->fetchAll(PDO::FETCH_ASSOC);
         <div class="card mb-4" id="reservas">
             <div class="card-body">
                 <div class="d-flex justify-content-between align-items-center mb-3">
-                    <h5>Gestión de Reservas</h5>
+                    <h5>Gestion de Reservas</h5>
+                    <div>
+                        <button class="btn btn-primary" onclick="location.href='crearReservaTech.php'">Crear Reserva</button>
+                        <button class="btn btn-primary" onclick="location.href='cerrarContrato.php'">Cerrar Contrato</button>
+                    </div>
 
-                    <button class="btn btn-primary" onclick="location.href='crearReservaTech.php'">Crear Reserva</button>
                 </div>
 
-                <div class="table-responsive" style="max-height: 400px; overflow-y: auto;">
-                    <table class="table table-striped align-middle">
-                        <thead class="table-dark">
-                            <tr>
-                                <th>ID</th>
-                                <th>DNI Cliente</th>
-                                <th>Nombre Cliente</th>
-                                <th>Vehiculo</th>
-                                <th>Inicio</th>
-                                <th>Fin</th>
-                                <th>Precio</th>
-                                <th>Estado</th>
-                                <th>Acciones</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <?php foreach ($reservas as $row): ?>
-                                <tr>
-                                    <td><?= $row['idReserva'] ?></td>
-                                    <td><?= htmlspecialchars($row['dni']) ?></td>
-                                    <td><?= htmlspecialchars($row['nombre'] . ' ' . $row['apellidos']) ?></td>
-                                    <td><?= htmlspecialchars($row['marca'] . ' ' . $row['modelo']) ?></td>
-                                    <td><?= $row['fechaInicio'] ?></td>
-                                    <td><?= $row['fechaFin'] ?></td>
-                                    <td><?= number_format($row['precioTotal'], 2) ?>€</td>
-                                    <td><?= $row['estado'] ?></td>
-                                    <td>
-                                        <a href="../pages/editarReserva.php?id=<?= $row['idReserva'] ?>" class="btn btn-sm btn-secondary mb-2">Editar</a>
-                                        <form method="POST" action="../includes/cancelarReserva.php" style="display:inline">
-                                            <input type="hidden" name="idReserva" value="<?= $row['idReserva'] ?>">
-                                            <button type="submit" class="btn btn-sm btn-danger mb-2">Cancelar</button>
-                                        </form>
-                                    </td>
-                                </tr>
-                            <?php endforeach; ?>
-                        </tbody>
-                    </table>
+                <div class="card mb-4" id="flota">
+                    <div class="card-body">
+                        <h5 class="card-title mb-3">Consultar Reservas</h5>
+
+                        <form method="GET" class="row g-2 align-items-end mb-3">
+                            <div class="col-auto">
+                                <label class="form-label">Estado</label>
+                                <select name="estadoReserva" class="form-select">
+                                    <option value="">Todos</option>
+                                    <?php
+                                    $estadosReserva = ['NO CUBIERTA', 'CUBIERTA'];
+                                    foreach ($estadosReserva as $estado):
+                                    ?>
+                                        <option value="<?= $estado ?>" <?= (isset($_GET['estadoReserva']) && $_GET['estadoReserva'] === $estado) ? 'selected' : '' ?>>
+                                            <?= $estado ?>
+                                        </option>
+                                    <?php endforeach; ?>
+                                </select>
+                            </div>
+
+                            <div class="col-auto">
+                                <button class="btn btn-primary" type="submit" onclick="this.form.action='<?= $_SERVER['PHP_SELF'] ?>#reservas'">Filtrar</button>
+                            </div>
+
+                            <div class="col-auto">
+                                <a href="<?= $_SERVER['PHP_SELF'] ?>#reservas" class="btn btn-danger">Quitar filtro</a>
+                            </div>
+                        </form>
+
+                        <div class="table-responsive" style="max-height: 400px; overflow-y: auto;">
+                            <table class="table table-striped align-middle">
+                                <thead class="table-dark">
+                                    <tr>
+                                        <th>ID</th>
+                                        <th>DNI Cliente</th>
+                                        <th>Nombre Cliente</th>
+                                        <th>Vehiculo</th>
+                                        <th>Categoria</th>
+                                        <th>Inicio</th>
+                                        <th>Fin</th>
+                                        <th>Precio</th>
+                                        <th>Estado</th>
+                                        <th>Acciones</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <?php
+                                    $filtroEstado = $_GET['estadoReserva'] ?? '';
+                                    $reservasFiltradas = $filtroEstado ? array_filter($reservas, fn($r) => $r['estado'] === $filtroEstado) : $reservas;
+
+                                    foreach ($reservasFiltradas as $row): ?>
+                                        <tr>
+                                            <td><?= $row['idReserva'] ?></td>
+                                            <td><?= htmlspecialchars($row['dni']) ?></td>
+                                            <td><?= htmlspecialchars($row['nombre'] . ' ' . $row['apellidos']) ?></td>
+                                            <td><?= htmlspecialchars($row['marca'] . ' ' . $row['modelo']) ?></td>
+                                            <td><?= htmlspecialchars($row['nombreCategoria'] ?? 'Sin categoria') ?></td>
+                                            <td><?= $row['fechaInicio'] ?></td>
+                                            <td><?= $row['fechaFin'] ?></td>
+                                            <td><?= number_format($row['precioTotal'], 2) ?>€</td>
+                                            <td><?= $row['estado'] ?></td>
+                                            <td>
+                                                <a href="../pages/editarReserva.php?id=<?= $row['idReserva'] ?>" class="btn btn-sm btn-secondary mb-2">Editar</a>
+                                                <form method="POST" action="../includes/cancelarReserva.php" style="display:inline">
+                                                    <input type="hidden" name="idReserva" value="<?= $row['idReserva'] ?>">
+                                                    <button type="submit" class="btn btn-sm btn-danger mb-2">Cancelar</button>
+                                                </form>
+                                            </td>
+                                        </tr>
+                                    <?php endforeach; ?>
+
+                                    <?php if (empty($reservasFiltradas)): ?>
+                                        <tr>
+                                            <td colspan="9" class="text-center text-muted">No hay reservas con ese estado</td>
+                                        </tr>
+                                    <?php endif; ?>
+                                </tbody>
+                            </table>
+                        </div>
+
+                    </div>
                 </div>
+
             </div>
         </div>
+
+
 
 
 
