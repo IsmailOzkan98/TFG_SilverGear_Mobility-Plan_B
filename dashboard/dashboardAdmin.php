@@ -330,11 +330,14 @@ $compras = $stmt->fetchAll(PDO::FETCH_ASSOC);
                 <div class="d-flex justify-content-between align-items-center mb-3">
                     <h5>Gestión de Vehículos</h5>
                     <div>
+                        <button class="btn btn-primary" onclick="location.href='entregarVehiculo.php'">
+                            Entregar Vehiculo
+                        </button>
                         <button class="btn btn-primary" onclick="location.href='subirFotoVehiculo.php'">
                             Subir Fotos
                         </button>
                         <button class="btn btn-primary" onclick="location.href='darAltaVehiculo.php'">
-                            Añadir Vehículo
+                            Añadir Vehiculo
                         </button>
                     </div>
                 </div>
@@ -473,7 +476,7 @@ $compras = $stmt->fetchAll(PDO::FETCH_ASSOC);
                                 <th>ID</th>
                                 <th>DNI Cliente</th>
                                 <th>Nombre Cliente</th>
-                                <th>Vehículo</th>
+                                <th>Vehiculo</th>
                                 <th>Inicio</th>
                                 <th>Fin</th>
                                 <th>Precio</th>
@@ -523,8 +526,8 @@ $compras = $stmt->fetchAll(PDO::FETCH_ASSOC);
                                 <th>ID Compra</th>
                                 <th>Cliente</th>
                                 <th>DNI</th>
-                                <th>Vehículo</th>
-                                <th>Matrícula</th>
+                                <th>Vehiculo</th>
+                                <th>Matricula</th>
                                 <th>Precio</th>
                                 <th>Fecha</th>
                             </tr>

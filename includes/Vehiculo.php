@@ -33,7 +33,9 @@ class Vehiculo {
         2 => 'SUCIO',
         3 => 'IMPRO',
         4 => 'VENTAS',
-        5 => 'BAJA'
+        5 => 'BAJA',
+        6 => 'VENDIDO',
+        7 => 'ALQUILADO'
     ];
 
     public function __construct($datos, PDO $pdo) {
