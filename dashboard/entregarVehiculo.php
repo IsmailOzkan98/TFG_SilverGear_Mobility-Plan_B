@@ -3,6 +3,7 @@ require_once '../includes/common.php';
 require_once '../includes/security.php';
 requireRole(['admin', 'mecanico', 'limpieza']);
 require_once '../includes/Vehiculo.php';
+require_once '../includes/controlFlota.php';
 
 $pdo = getPDO();
 
@@ -96,7 +97,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['entregarVehiculo'])) 
             "Vehiculo entregado en plaza $plaza"
         );
 
-        $mensaje = "Vehiculo entregado correctamente y marcado como LIMPIO.";
+        $asignado = vincularVehiculoANoCubiertas($vehiculo);
+        if ($asignado) {
+            $mensaje = "Vehiculo entregado correctamente y asignado a una reserva.";
+        } else {
+            $mensaje = "Vehiculo entregado correctamente, no hay reservas para asignar.";
+        }
+
+
+
         $vehiculo = null;
         $datosVehiculo = null;
 

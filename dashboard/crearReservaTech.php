@@ -2,6 +2,7 @@
 require_once '../includes/common.php';
 require_once '../includes/security.php';
 requireRole(['admin', 'ventas']);
+require_once '../includes/controlFlota.php';
 
 $pdo = getPDO();
 $mensaje = '';
@@ -68,13 +69,23 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             ':carnetJoven' => $recargoCarnet > 0 ? 1 : 0
         ]);
 
-        $mensaje = "Reserva creada correctamente para $dniCliente.";
+        $idReserva = $pdo->lastInsertId();
+        $asignado = asignarVehiculoAReserva($idReserva);
+
+
+
+        if ($asignado) {
+            $mensaje = "Reserva creada correctamente para $dniCliente y vehiculo asignado automaticamente.";
+        } else {
+            $mensaje = "Reserva creada correctamente para $dniCliente. No hay vehiculo disponible para asignar.";
+        }
     }
 }
 ?>
 
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -100,102 +111,103 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         </div>
     </nav>
 
-<div class="container">
-    <div class="card mb-4">
-        <div class="card-body">
-            <h1 class="mb-4">Crear Reserva</h1>
+    <div class="container">
+        <div class="card mb-4">
+            <div class="card-body">
+                <h1 class="mb-4">Crear Reserva</h1>
 
-            <?php if ($mensaje): ?>
-                <div class="alert alert-success"><?= htmlspecialchars($mensaje) ?></div>
-            <?php endif; ?>
-            <?php if ($errores): ?>
-                <div class="alert alert-danger">
-                    <ul class="mb-0">
-                        <?php foreach ($errores as $campo => $error): ?>
-                            <li><?= htmlspecialchars("$campo: $error") ?></li>
-                        <?php endforeach; ?>
-                    </ul>
-                </div>
-            <?php endif; ?>
-
-            <form id="formReserva" method="POST">
-                <div class="row g-3">
-                    <div class="col-md-6">
-                        <label class="form-label">DNI del Cliente</label>
-                        <input type="text" class="form-control" name="dniCliente" required>
-                    </div>
-                    <div class="col-md-6">
-                        <label class="form-label">Categoría</label>
-                        <select class="form-select" name="idCategoria" required>
-                            <option value="">-- Seleccione categoría --</option>
-                            <?php foreach ($categorias as $cat): ?>
-                                <option value="<?= $cat['idCategoria'] ?>"><?= htmlspecialchars($cat['nombreCategoria']) ?></option>
+                <?php if ($mensaje): ?>
+                    <div class="alert alert-success"><?= htmlspecialchars($mensaje) ?></div>
+                <?php endif; ?>
+                <?php if ($errores): ?>
+                    <div class="alert alert-danger">
+                        <ul class="mb-0">
+                            <?php foreach ($errores as $campo => $error): ?>
+                                <li><?= htmlspecialchars("$campo: $error") ?></li>
                             <?php endforeach; ?>
-                        </select>
+                        </ul>
                     </div>
-                    <div class="col-md-6">
-                        <label class="form-label">Marca solicitada</label>
-                        <input type="text" class="form-control" name="marcaSolicitada" value="INDEFERENTE">
+                <?php endif; ?>
+
+                <form id="formReserva" method="POST">
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label">DNI del Cliente</label>
+                            <input type="text" class="form-control" name="dniCliente" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Categoría</label>
+                            <select class="form-select" name="idCategoria" required>
+                                <option value="">-- Seleccione categoría --</option>
+                                <?php foreach ($categorias as $cat): ?>
+                                    <option value="<?= $cat['idCategoria'] ?>"><?= htmlspecialchars($cat['nombreCategoria']) ?></option>
+                                <?php endforeach; ?>
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Marca solicitada</label>
+                            <input type="text" class="form-control" name="marcaSolicitada" value="INDEFERENTE">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Modelo solicitado</label>
+                            <input type="text" class="form-control" name="modeloSolicitado" value="INDEFERENTE">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Fecha Inicio</label>
+                            <input type="date" class="form-control" name="fechaInicio" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Fecha Fin</label>
+                            <input type="date" class="form-control" name="fechaFin" required>
+                        </div>
+                        <div class="col-12 form-check mt-2">
+                            <input type="checkbox" class="form-check-input" name="seguro" id="seguro">
+                            <label class="form-check-label" for="seguro">Seguro todo riesgo</label>
+                        </div>
+                        <div class="col-12 mt-3">
+                            <p><strong>Precio/día:</strong> <span id="precioDia">0.00</span> €</p>
+                            <p><strong>Precio total:</strong> <span id="precioTotal">0.00</span> €</p>
+                        </div>
+                        <div class="col-12 mt-2">
+                            <button type="submit" class="btn btn-primary">Crear Reserva</button>
+                            <a href="<?= volverSegunRol() ?>" class="btn btn-secondary">Cancelar</a>
+                        </div>
                     </div>
-                    <div class="col-md-6">
-                        <label class="form-label">Modelo solicitado</label>
-                        <input type="text" class="form-control" name="modeloSolicitado" value="INDEFERENTE">
-                    </div>
-                    <div class="col-md-6">
-                        <label class="form-label">Fecha Inicio</label>
-                        <input type="date" class="form-control" name="fechaInicio" required>
-                    </div>
-                    <div class="col-md-6">
-                        <label class="form-label">Fecha Fin</label>
-                        <input type="date" class="form-control" name="fechaFin" required>
-                    </div>
-                    <div class="col-12 form-check mt-2">
-                        <input type="checkbox" class="form-check-input" name="seguro" id="seguro">
-                        <label class="form-check-label" for="seguro">Seguro todo riesgo</label>
-                    </div>
-                    <div class="col-12 mt-3">
-                        <p><strong>Precio/día:</strong> <span id="precioDia">0.00</span> €</p>
-                        <p><strong>Precio total:</strong> <span id="precioTotal">0.00</span> €</p>
-                    </div>
-                    <div class="col-12 mt-2">
-                        <button type="submit" class="btn btn-primary">Crear Reserva</button>
-                        <a href="<?= volverSegunRol() ?>" class="btn btn-secondary">Cancelar</a>
-                    </div>
-                </div>
-            </form>
+                </form>
+            </div>
         </div>
     </div>
-</div>
 
-<script>
-const form = document.getElementById('formReserva');
-const precioDiaEl = document.getElementById('precioDia');
-const precioTotalEl = document.getElementById('precioTotal');
-let categorias = <?= json_encode($categorias) ?>;
+    <script>
+        const form = document.getElementById('formReserva');
+        const precioDiaEl = document.getElementById('precioDia');
+        const precioTotalEl = document.getElementById('precioTotal');
+        let categorias = <?= json_encode($categorias) ?>;
 
-function actualizarPrecio() {
-    let catId = form.idCategoria.value;
-    let cat = categorias.find(c => c.idCategoria == catId);
-    if (!cat) return;
+        function actualizarPrecio() {
+            let catId = form.idCategoria.value;
+            let cat = categorias.find(c => c.idCategoria == catId);
+            if (!cat) return;
 
-    let seguro = form.seguro.checked ? parseFloat(cat.incrementoSeguro) : 0;
-    let carnet = parseFloat(cat.recargoCarnetJoven);
+            let seguro = form.seguro.checked ? parseFloat(cat.incrementoSeguro) : 0;
+            let carnet = parseFloat(cat.recargoCarnetJoven);
 
-    let fechaInicio = new Date(form.fechaInicio.value);
-    let fechaFin = new Date(form.fechaFin.value);
-    let dias = (fechaFin - fechaInicio) / (1000 * 60 * 60 * 24) + 1;
-    if (isNaN(dias) || dias < 1) dias = 1;
+            let fechaInicio = new Date(form.fechaInicio.value);
+            let fechaFin = new Date(form.fechaFin.value);
+            let dias = (fechaFin - fechaInicio) / (1000 * 60 * 60 * 24) + 1;
+            if (isNaN(dias) || dias < 1) dias = 1;
 
-    let precioDia = parseFloat(cat.precioBase) * (1 + seguro / 100 + carnet / 100);
-    let precioTotal = precioDia * dias;
+            let precioDia = parseFloat(cat.precioBase) * (1 + seguro / 100 + carnet / 100);
+            let precioTotal = precioDia * dias;
 
-    precioDiaEl.textContent = precioDia.toFixed(2);
-    precioTotalEl.textContent = precioTotal.toFixed(2);
-}
+            precioDiaEl.textContent = precioDia.toFixed(2);
+            precioTotalEl.textContent = precioTotal.toFixed(2);
+        }
 
-form.addEventListener('change', actualizarPrecio);
-form.addEventListener('input', actualizarPrecio);
-</script>
+        form.addEventListener('change', actualizarPrecio);
+        form.addEventListener('input', actualizarPrecio);
+    </script>
 
 </body>
+
 </html>

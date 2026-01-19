@@ -2,6 +2,7 @@
 require_once '../includes/common.php';
 require_once '../includes/security.php';
 requireRole(['admin', 'cliente', 'ventas', 'mecanico']);
+require_once '../includes/controlFlota.php';
 
 $pdo = getPDO();
 
@@ -25,6 +26,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         (:idUsuario, :idCategoria, :marca, :modelo, :idVehiculo, :fechaInicio, :fechaFin, :precioDia, :precioTotal, 'NO CUBIERTA', :seguro, :carnetJoven)
     ");
 
+
+
+    
+
     $stmt->execute([
         ':idUsuario'    => $idUsuario,
         ':idCategoria'  => $idCategoria,
@@ -38,6 +43,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         ':seguro'       => $seguro,
         ':carnetJoven'  => $carnetJoven
     ]);
+
+    $idReserva = $pdo->lastInsertId();
+    asignarVehiculoAReserva($idReserva);
 
     header("Location: ../pages/miPerfil.php");
     exit;

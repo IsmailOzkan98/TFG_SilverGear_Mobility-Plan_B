@@ -46,9 +46,10 @@ $stmt = $pdo->prepare("
     LEFT JOIN Vehiculo v ON r.idVehiculoAsignado = v.idVehiculo
     LEFT JOIN Categoria c ON v.idCategoria = c.idCategoria
     WHERE r.idUsuario = ?
-      AND r.estado <> 'NO CUBIERTA'
+      AND r.estado IN ('FINALIZADO', 'CANCELADA')
     ORDER BY r.fechaInicio DESC
 ");
+
 
 $stmt->execute([$idUsuario]);
 $historial = $stmt->fetchAll(PDO::FETCH_ASSOC);
@@ -106,8 +107,11 @@ $compras = $stmt->fetchAll(PDO::FETCH_ASSOC);
                     <a href="editarPerfil.php?dni=<?= urlencode($usuario['dni']) ?>" class="btn btn-custom">Editar perfil</a>
                     <a href="cesta.php" class="btn btn-custom">Mi Cesta</a>
                 </div>
+                
+                <div class="d-flex justify-content-center gap-3 mb-5">
+                    <a href="penalizacion.php" class="btn btn-custom">Penalizaciones</a>
 
-                <?php if ($_SESSION['usuario']['rol'] === 'cliente'): ?>
+                    <?php if ($_SESSION['usuario']['rol'] === 'cliente'): ?>
                     <div class="d-flex justify-content-center mt-4">
                         <a href="confirmarEliminarUsuario.php" class="btn btn-danger">
                             Eliminar mi cuenta
@@ -115,9 +119,11 @@ $compras = $stmt->fetchAll(PDO::FETCH_ASSOC);
                     </div>
 
                 <?php endif; ?>
+                </div>
 
-
+                
                 <h3 class="mb-3">Mis reservas</h3>
+
                 <div class="table-responsive" style="max-height: 400px; overflow-y: auto;">
                     <ul class="list-group mb-4">
                         <?php if (empty($reservasPendientes)): ?>
@@ -165,12 +171,10 @@ $compras = $stmt->fetchAll(PDO::FETCH_ASSOC);
                                     Reserva #<?= $h['idReserva'] ?> —
                                     <?= $h['fechaInicio'] ?> / <?= $h['fechaFin'] ?> —
                                     <?= $h['estado'] ?> —
-                                    Marca: <?= htmlspecialchars($h['marcaVehiculo'] ?? $h['marcaSolicitada']) ?> —
-                                    Modelo: <?= htmlspecialchars($h['modeloVehiculo'] ?? $h['modeloSolicitado']) ?> —
-                                    Categoría: <?= htmlspecialchars(
-                                                    $h['categoriaVehiculo'] ??
-                                                        ($h['categoriaSolicitada'] ? getNombreCategoria($h['categoriaSolicitada']) : 'Sin categoría')
-                                                ) ?>
+                                    Marca: <?= htmlspecialchars($h['marcaVehiculo'] ?: $h['marcaSolicitada'] ?: 'N/A') ?> —
+                                    Modelo: <?= htmlspecialchars($h['modeloVehiculo'] ?: $h['modeloSolicitado'] ?: 'N/A') ?> —
+                                    Categoría: <?= htmlspecialchars($h['categoriaVehiculo'] ?: ($h['categoriaSolicitada'] ? getNombreCategoria($h['categoriaSolicitada']) : 'Sin categoría')) ?>
+
                                 </li>
                             <?php endforeach; ?>
                         <?php endif; ?>

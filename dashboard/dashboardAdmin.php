@@ -469,9 +469,13 @@ $compras = $stmt->fetchAll(PDO::FETCH_ASSOC);
                     <div>
                         <button class="btn btn-primary" onclick="location.href='crearReservaTech.php'">Crear Reserva</button>
                         <button class="btn btn-primary" onclick="location.href='cerrarContrato.php'">Cerrar Contrato</button>
+                        <button class="btn btn-primary" onclick="location.href='cubrirReservas.php'">Cubrir Reservas</button>
                     </div>
+                    
 
                 </div>
+
+
 
                 <div class="card mb-4" id="flota">
                     <div class="card-body">

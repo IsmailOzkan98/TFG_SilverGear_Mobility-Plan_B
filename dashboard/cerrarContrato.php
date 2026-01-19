@@ -3,17 +3,18 @@ require_once '../includes/common.php';
 require_once '../includes/security.php';
 requireRole(['admin', 'ventas']);
 require_once '../includes/Vehiculo.php';
+require_once '../includes/controlFlota.php';
 
 $pdo = getPDO();
 
 $cliente = null;
 $reservas = [];
-$vehiculo = null;
-$datosReserva = null;
 $mensaje = '';
 $errores = [];
 
+// ----------------------
 // Buscar cliente por DNI
+// ----------------------
 if (isset($_GET['dni'])) {
     $dni = strtoupper(trim($_GET['dni']));
 
@@ -24,24 +25,22 @@ if (isset($_GET['dni'])) {
     if (!$cliente) {
         $errores['general'] = "Cliente no encontrado.";
     } else {
-        // Obtener reservas activas
+        // Obtener todas las reservas CUBIERTA
         $stmtRes = $pdo->prepare("
             SELECT r.*, v.matricula, v.marca, v.modelo, v.idEstado
             FROM Reserva r
-            JOIN Vehiculo v ON r.idVehiculo = v.idVehiculo
-            WHERE r.idUsuario = :idUsuario AND r.estado = 'CUBIERTO'
+            LEFT JOIN Vehiculo v ON r.matriculaVehiculo = v.matricula
+            WHERE r.idUsuario = :idUsuario AND r.estado = 'CUBIERTA'
+            ORDER BY r.fechaInicio ASC
         ");
         $stmtRes->execute([':idUsuario' => $cliente['idUsuario']]);
         $reservas = $stmtRes->fetchAll(PDO::FETCH_ASSOC);
-        if (!empty($reservas)) {
-            // Tomamos la primera reserva para cerrar
-            $datosReserva = $reservas[0];
-            $vehiculo = new Vehiculo($datosReserva, $pdo);
-        }
     }
 }
 
-// Cerrar contrato
+// ----------------------
+// Cerrar contrato individual
+// ----------------------
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['cerrarContrato'])) {
     try {
         $idReserva = $_POST['idReserva'] ?? null;
@@ -50,50 +49,91 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['cerrarContrato'])) {
         $notaPenalizacion = trim($_POST['notaPenalizacion'] ?? '');
         $estadoVehiculo = $_POST['estadoVehiculo'] ?? null;
 
+        if (!isset($_POST['estadoVehiculo'])) {
+            throw new Exception("Debes seleccionar el estado final del vehículo.");
+        }
+
+        $nombreEstado = $_POST['estadoVehiculo']; //SUCIO, IMPRO
+
+        $stmtEstado = $pdo->prepare("
+            SELECT idEstado 
+            FROM EstadoVehiculo 
+            WHERE nombreEstado = :nombre
+        ");
+
+        $stmtEstado->execute([':nombre' => $nombreEstado]);
+        
+        $idEstado = $stmtEstado->fetchColumn();
+
+        if (!$idEstado) {
+            throw new Exception("Estado del vehículo no válido.");
+        }
+
+
         if (!$idReserva) throw new Exception("Reserva no válida.");
         if (!$estadoVehiculo || !in_array($estadoVehiculo, ['SUCIO', 'IMPRO'])) {
             throw new Exception("Estado del vehículo no válido.");
         }
 
-        // Cargar reserva
-        $stmt = $pdo->prepare("
+        // Cargar reserva específica
+        $stmtRes = $pdo->prepare("
             SELECT r.*, v.matricula, v.marca, v.modelo, v.idEstado
             FROM Reserva r
-            JOIN Vehiculo v ON r.idVehiculo = v.idVehiculo
-            WHERE r.idReserva = :idReserva
+            LEFT JOIN Vehiculo v ON r.matriculaVehiculo = v.matricula
+            WHERE r.idReserva = :idReserva AND r.estado = 'CUBIERTA'
         ");
-        $stmt->execute([':idReserva' => $idReserva]);
-        $datosReserva = $stmt->fetch(PDO::FETCH_ASSOC);
-        if (!$datosReserva) throw new Exception("Reserva no encontrada.");
+        $stmtRes->execute([':idReserva' => $idReserva]);
+        $datosReserva = $stmtRes->fetch(PDO::FETCH_ASSOC);
+
+        if (!$datosReserva) throw new Exception("Reserva no encontrada o ya cerrada.");
 
         $vehiculo = new Vehiculo($datosReserva, $pdo);
 
+        // Aplicar penalización si corresponde
         // Aplicar penalización si marcada
         if ($penalizar && $montoPenalizacion > 0) {
             $stmt = $pdo->prepare("
-                INSERT INTO Penalizacion (idReserva, monto, nota)
-                VALUES (:idReserva, :monto, :nota)
-            ");
+        INSERT INTO Penalizacion (idReserva, cantidad, nota, dniCliente, matriculaVehiculo)
+        VALUES (:idReserva, :cantidad, :nota, :dniCliente, :matriculaVehiculo)
+    ");
             $stmt->execute([
-                ':idReserva' => $idReserva,
-                ':monto' => $montoPenalizacion,
-                ':nota' => $notaPenalizacion
+                ':idReserva'        => $idReserva,
+                ':cantidad'         => $montoPenalizacion,
+                ':nota'             => $notaPenalizacion,
+                ':dniCliente'       => $cliente['dni'],
+                ':matriculaVehiculo' => $vehiculo->matricula
             ]);
         }
 
-        // Cambiar estado del vehículo
-        $stmtEstado = $pdo->prepare("SELECT idEstado FROM EstadoVehiculo WHERE nombreEstado = :nombre");
-        $stmtEstado->execute([':nombre' => $estadoVehiculo]);
-        $idEstado = $stmtEstado->fetchColumn();
-        cambiarEstadoVehiculo($pdo, $vehiculo, $idEstado, $_SESSION['usuario']['dni'] ?? null, "Contrato cerrado");
 
-        // Cambiar estado de la reserva a FINALIZADO
+        // Cambiar estado del vehículo
+        cambiarEstadoVehiculo(
+            $pdo,
+            $vehiculo,
+            $idEstado,
+            $_SESSION['usuario']['dni'] ?? null,
+            'Cierre de contrato'
+        );
+
+
+        // Actualizar estado de la reserva
         $stmt = $pdo->prepare("UPDATE Reserva SET estado = 'FINALIZADO' WHERE idReserva = :idReserva");
         $stmt->execute([':idReserva' => $idReserva]);
 
         $mensaje = "Contrato cerrado correctamente.";
-        $datosReserva = null;
-        $vehiculo = null;
+
+        // Refrescar la lista de reservas
+        if ($cliente) {
+            $stmtRes = $pdo->prepare("
+                SELECT r.*, v.matricula, v.marca, v.modelo, v.idEstado
+                FROM Reserva r
+                LEFT JOIN Vehiculo v ON r.matriculaVehiculo = v.matricula
+                WHERE r.idUsuario = :idUsuario AND r.estado = 'CUBIERTA'
+                ORDER BY r.fechaInicio ASC
+            ");
+            $stmtRes->execute([':idUsuario' => $cliente['idUsuario']]);
+            $reservas = $stmtRes->fetchAll(PDO::FETCH_ASSOC);
+        }
     } catch (Exception $e) {
         $errores['general'] = $e->getMessage();
     }
@@ -108,14 +148,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['cerrarContrato'])) {
     <title>Cerrar Contrato</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <script>
-        function togglePenalizacion() {
-            const check = document.getElementById('penalizar');
-            const div = document.getElementById('penalizacionFields');
+        function togglePenalizacion(id) {
+            const check = document.getElementById('penalizar_' + id);
+            const div = document.getElementById('penalizacionFields_' + id);
             div.style.display = check.checked ? 'block' : 'none';
         }
     </script>
 </head>
-
 
 <body class="bg-light">
 
@@ -156,68 +195,81 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['cerrarContrato'])) {
             </div>
         </div>
 
-        <?php if ($datosReserva && $vehiculo): ?>
+        <?php if ($cliente && !empty($reservas)): ?>
             <div class="card">
                 <div class="card-body">
-                    <h4>Datos del Vehículo</h4>
-                    <form method="post">
-                        <input type="hidden" name="idReserva" value="<?= $datosReserva['idReserva'] ?>">
+                    <h4>Contratos activos de <?= htmlspecialchars($cliente['nombre'] ?? '') ?></h4>
+                    <?php foreach ($reservas as $reserva):
+                        $veh = new Vehiculo($reserva, $pdo);
+                        $id = $reserva['idReserva'];
+                        $retrasoDias = comprobarRetrasoEntrega($reserva['fechaFin']);
+                    ?>
+                        <form method="post" class="border p-3 mb-3">
+                            <input type="hidden" name="idReserva" value="<?= $id ?>">
 
-                        <div class="row g-3 mb-2">
-                            <div class="col-md-4">
-                                <label class="form-label">Matrícula</label>
-                                <input type="text" class="form-control" value="<?= htmlspecialchars($vehiculo->matricula) ?>" readonly>
+                            <div class="row g-3 mb-2">
+                                <div class="col-md-3">
+                                    <label class="form-label">Matrícula</label>
+                                    <input type="text" class="form-control" value="<?= htmlspecialchars($veh->matricula) ?>" readonly>
+                                </div>
+                                <div class="col-md-3">
+                                    <label class="form-label">Marca</label>
+                                    <input type="text" class="form-control" value="<?= htmlspecialchars($veh->marca) ?>" readonly>
+                                </div>
+                                <div class="col-md-3">
+                                    <label class="form-label">Modelo</label>
+                                    <input type="text" class="form-control" value="<?= htmlspecialchars($veh->modelo) ?>" readonly>
+                                </div>
+                                <div class="col-md-3">
+                                    <label class="form-label">Estado actual</label>
+                                    <input type="text" class="form-control" value="<?= htmlspecialchars(Vehiculo::obtenerNombreEstado($veh->idEstado)) ?>" readonly>
+                                </div>
+                                <?php if ($retrasoDias !== null): ?>
+                                    <div class="alert alert-warning mt-2">
+                                        ⚠️ Vehículo entregado con <strong><?= $retrasoDias ?></strong> día(s) de retraso
+                                    </div>
+                                <?php endif; ?>
                             </div>
-                            <div class="col-md-4">
-                                <label class="form-label">Marca</label>
-                                <input type="text" class="form-control" value="<?= htmlspecialchars($vehiculo->marca) ?>" readonly>
-                            </div>
-                            <div class="col-md-4">
-                                <label class="form-label">Modelo</label>
-                                <input type="text" class="form-control" value="<?= htmlspecialchars($vehiculo->modelo) ?>" readonly>
-                            </div>
-                            <div class="col-md-4">
-                                <label class="form-label">Estado actual</label>
-                                <input type="text" class="form-control" value="<?= htmlspecialchars($datosReserva['idEstado']) ?>" readonly>
-                            </div>
-                        </div>
 
-                        <div class="form-check mb-2">
-                            <input type="checkbox" class="form-check-input" name="penalizar" id="penalizar" onclick="togglePenalizacion()">
-                            <label class="form-check-label" for="penalizar">Penalizar</label>
-                        </div>
+                            <div class="form-check mb-2">
+                                <input type="checkbox" class="form-check-input" name="penalizar" id="penalizar_<?= $id ?>" onclick="togglePenalizacion(<?= $id ?>)">
+                                <label class="form-check-label" for="penalizar_<?= $id ?>">Penalizar</label>
+                            </div>
 
-                        <div id="penalizacionFields" style="display:none;">
+                            <div id="penalizacionFields_<?= $id ?>" style="display:none;">
+                                <div class="row g-3 mb-2">
+                                    <div class="col-md-4">
+                                        <label class="form-label">Monto penalización (€)</label>
+                                        <input type="number" step="0.01" name="montoPenalizacion" class="form-control">
+                                    </div>
+                                    <div class="col-md-8">
+                                        <label class="form-label">Nota</label>
+                                        <input type="text" name="notaPenalizacion" class="form-control">
+                                    </div>
+                                </div>
+                            </div>
+
                             <div class="row g-3 mb-2">
                                 <div class="col-md-4">
-                                    <label class="form-label">Monto penalización (€)</label>
-                                    <input type="number" step="0.01" name="montoPenalizacion" class="form-control">
-                                </div>
-                                <div class="col-md-8">
-                                    <label class="form-label">Nota</label>
-                                    <input type="text" name="notaPenalizacion" class="form-control">
+                                    <label class="form-label">Estado final del vehiculo</label>
+                                    <select name="estadoVehiculo" class="form-select" required>
+                                        <option value="">Seleccionar</option>
+                                        <option value="SUCIO">SUCIO</option>
+                                        <option value="IMPRO">IMPRO</option>
+                                    </select>
+
                                 </div>
                             </div>
-                        </div>
 
-                        <div class="row g-3 mb-2">
-                            <div class="col-md-4">
-                                <label class="form-label">Estado final del vehiculo</label>
-                                <select name="estadoVehiculo" class="form-select" required>
-                                    <option value="">Seleccionar</option>
-                                    <option value="SUCIO">SUCIO</option>
-                                    <option value="IMPRO">IMPRO</option>
-                                </select>
-                            </div>
-                        </div>
-
-                        <button type="submit" name="cerrarContrato" class="btn btn-primary mt-3">Cerrar Contrato</button>
-                    </form>
+                            <button type="submit" name="cerrarContrato" class="btn btn-primary mt-2">Cerrar Contrato</button>
+                        </form>
+                    <?php endforeach; ?>
                 </div>
             </div>
         <?php elseif ($cliente): ?>
             <div class="alert alert-info">No tiene contratos activos.</div>
         <?php endif; ?>
+
     </div>
 
 </body>

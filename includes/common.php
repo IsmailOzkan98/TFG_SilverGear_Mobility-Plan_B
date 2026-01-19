@@ -174,6 +174,8 @@ function actualizarDisponibilidadVehiculo(&$vehiculo)
     switch ($vehiculo->idEstado) {
         case 3: // IMPRO
         case 5: // BAJA
+        case 6: // VENDIDO
+        case 7: // ALQUILADO
             $vehiculo->disponibilidad = false;
             break;
         case 1: // LIMPIO
@@ -384,4 +386,18 @@ function getNombreCategoria($idCategoria) {
     $stmt->execute([$idCategoria]);
     return $stmt->fetchColumn();
 }
+
+//comprobar el retraso de entrega
+function comprobarRetrasoEntrega(string $fechaFin): ?int
+{
+    $hoy = new DateTime('today');
+    $fin = new DateTime($fechaFin);
+
+    if ($hoy <= $fin) {
+        return null; 
+    }
+
+    return $fin->diff($hoy)->days; 
+}
+
 
