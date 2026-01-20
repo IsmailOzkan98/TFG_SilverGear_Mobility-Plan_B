@@ -36,7 +36,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
         $pdo = getPDO();
 
         $stmt = $pdo->prepare("
-            SELECT u.idUsuario, u.nombre, u.apellidos, u.contrasena, r.nombreRol
+            SELECT u.idUsuario, u.nombre, u.apellidos, u.contrasena, u.dni, r.nombreRol
             FROM Usuario u
             JOIN Rol r ON u.idRol = r.idRol
             WHERE u.email = ?
@@ -52,7 +52,8 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                 'idUsuario' => $usuario['idUsuario'],
                 'nombre' => $usuario['nombre'],
                 'apellidos' => $usuario['apellidos'],
-                'rol' => $usuario['nombreRol']
+                'rol' => $usuario['nombreRol'],
+                'dni' => $usuario['dni']
             ];
 
             // redireccion auto segun tu rol

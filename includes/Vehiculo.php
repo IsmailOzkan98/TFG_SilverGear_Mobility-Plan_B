@@ -69,7 +69,7 @@ class Vehiculo {
 
     public function actualizarDisponibilidad() {
         $nombre = self::$estadoNombres[$this->idEstado] ?? '';
-        $this->disponibilidad = in_array($nombre, ['LIMPIO','SUCIO','IMPRO','VENTAS','BAJA']);
+        $this->disponibilidad = in_array($nombre, ['LIMPIO','SUCIO','IMPRO','VENTAS','BAJA','VENDIDO','ALQUILADO']);
     }
 
     public function esAlquilable(): bool {
