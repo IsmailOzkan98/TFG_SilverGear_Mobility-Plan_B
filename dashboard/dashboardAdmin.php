@@ -120,6 +120,7 @@ $compras = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
             <div class="collapse navbar-collapse show">
                 <ul class="navbar-nav ms-auto mb-2 mb-lg-0">
+                    <li class="nav-item"><a class="nav-link" href="dashboardLimpieza.php">Panel Limpieza</a></li>
                     <li class="nav-item"><a class="nav-link" href="dashboardMecanico.php">Panel Mecanico</a></li>
                     <li class="nav-item"><a class="nav-link" href="../index.php">INDEX</a></li>
                     <li class="nav-item"><a class="nav-link" href="../pages/tiendaAlquiler.php">ALQUILER</a></li>
