@@ -1,0 +1,283 @@
+<?php
+require_once '../includes/common.php';
+require_once '../includes/security.php';
+requireRole(['admin', 'ventas']);
+
+$pdo = getPDO();
+
+$usuarioProtegido = "00000000X";
+
+
+// clientes
+$stmt = $pdo->query("
+    SELECT u.*
+    FROM Usuario u
+    JOIN Rol r ON u.idRol = r.idRol
+    WHERE r.nombreRol = 'cliente'
+");
+$clientes = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+//reservas
+$stmt = $pdo->query("
+    SELECT r.*, u.nombre, u.apellidos, u.dni,
+           v.marca, v.modelo, c.nombreCategoria
+    FROM Reserva r
+    JOIN Usuario u ON r.idUsuario = u.idUsuario
+    LEFT JOIN Vehiculo v ON r.idVehiculo = v.idVehiculo
+    LEFT JOIN Categoria c ON r.idCategoria = c.idCategoria
+    WHERE r.estado IN ('NO CUBIERTA','CUBIERTA')
+    ORDER BY r.fechaInicio DESC
+");
+$reservas = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+$reservasCubiertas = array_filter($reservas, fn($r) => $r['estado'] === 'CUBIERTA');
+$reservasNoCubiertas = array_filter($reservas, fn($r) => $r['estado'] === 'NO CUBIERTA');
+
+//vehiculos
+$stmt = $pdo->query("SELECT idEstado, nombreEstado FROM EstadoVehiculo");
+$estados = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+$stmt = $pdo->query("SELECT idCategoria, nombreCategoria FROM Categoria");
+$categorias = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+$vehiculos = obtenerFlotaFiltrada($_GET);
+
+// filtrar estados permitidos
+$vehiculos = array_filter(
+    $vehiculos,
+    fn($v) =>
+    in_array($v['nombreEstado'], ['ALQUILADO', 'LIMPIO', 'SUCIO', 'IMPRO'])
+);
+
+//compras
+$stmt = $pdo->query("SELECT COUNT(*) FROM Compra");
+$totalCompras = $stmt->fetchColumn();
+?>
+
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Panel Ventas - SilverGear Mobility</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+
+<body class="bg-light">
+
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+        <div class="container-fluid">
+            <span class="navbar-brand fw-bold">SilverGear Mobility</span>
+
+            <div class="collapse navbar-collapse show">
+                <ul class="navbar-nav ms-auto">
+                    <?php if (getUserRole() === 'admin'): ?>
+                        <li class="nav-item">
+                            <a class="nav-link fw-bold text-warning" href="<?= volverSegunRol() ?>">
+                                Volver a Dashboard Admin
+                            </a>
+                        </li>
+                    <?php endif; ?>
+                    <li class="nav-item">
+                        <a class="nav-link text-danger" href="../includes/logout.php">Cerrar sesión</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container my-4">
+
+        <h1 class="mb-4">Dashboard Ventas</h1>
+
+        <!-- resumen general -->
+        <div class="card mb-4">
+            <div class="card-body">
+                <h5 class="card-title mb-3">Resumen General</h5>
+
+                <div class="row g-3">
+                    <div class="col-md-3">
+                        <div class="card text-center">
+                            <div class="card-body">
+                                <h6>Total Clientes</h6>
+                                <span class="fs-3 fw-bold"><?= count($clientes) ?></span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-md-3">
+                        <div class="card text-center">
+                            <div class="card-body">
+                                <h6>Reservas cubiertas</h6>
+                                <span class="fs-3 fw-bold"><?= count($reservasCubiertas) ?></span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-md-3">
+                        <div class="card text-center">
+                            <div class="card-body">
+                                <h6>Reservas no cubiertas</h6>
+                                <span class="fs-3 fw-bold"><?= count($reservasNoCubiertas) ?></span>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+
+        <!-- clientes -->
+        <div class="card mb-4" id="clientes">
+            <div class="card-body">
+                <h5 class="mb-3">Gestión de Clientes</h5>
+
+                <div class="table-responsive" style="max-height: 400px; overflow-y:auto">
+                    <table class="table table-striped align-middle">
+                        <thead class="table-dark">
+                            <tr>
+                                <th>DNI</th>
+                                <th>Nombre</th>
+                                <th>Email</th>
+                                <th>Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <?php foreach ($clientes as $row): ?>
+                                <tr>
+                                    <td><?= htmlspecialchars($row['dni']) ?></td>
+                                    <td><?= htmlspecialchars($row['nombre'] . ' ' . $row['apellidos']) ?></td>
+                                    <td><?= htmlspecialchars($row['email']) ?></td>
+                                    <td>
+                                        <?php if ($row['dni'] !== $usuarioProtegido): ?>
+                                            <a href="editarUsuario.php?dni=<?= urlencode($row['dni']) ?>"
+                                                class="btn btn-sm btn-secondary mb-2">Editar</a>
+                                        <?php else: ?>
+                                            <span class="text-muted">Usuario protegido</span>
+                                        <?php endif; ?>
+                                    </td>
+                                </tr>
+                            <?php endforeach; ?>
+                        </tbody>
+
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- vehiculos -->
+        <div class="card mb-4" id="vehiculos">
+            <div class="card-body">
+                <h5 class="mb-3">Gestión de Vehículos</h5>
+
+                
+                <form method="GET" class="row g-2 align-items-end mb-3">
+                    <div class="col">
+                        <label class="form-label">Estado</label>
+                        <select name="estado" class="form-select">
+                            <option value="">Todos</option>
+                            <?php foreach ($estados as $e): ?>
+                                <option value="<?= $e['idEstado'] ?>"><?= $e['nombreEstado'] ?></option>
+                            <?php endforeach; ?>
+                        </select>
+                    </div>
+
+                    <div class="col">
+                        <label class="form-label">Marca</label>
+                        <input type="text" name="marca" class="form-control">
+                    </div>
+
+                    <div class="col">
+                        <label class="form-label">Modelo</label>
+                        <input type="text" name="modelo" class="form-control">
+                    </div>
+
+                    <div class="col">
+                        <label class="form-label">Categoría</label>
+                        <select name="categoria" class="form-select">
+                            <option value="">Todas</option>
+                            <?php foreach ($categorias as $c): ?>
+                                <option value="<?= $c['idCategoria'] ?>"><?= $c['nombreCategoria'] ?></option>
+                            <?php endforeach; ?>
+                        </select>
+                    </div>
+
+                    <div class="col-auto">
+                        <button class="btn btn-primary">Filtrar</button>
+                    </div>
+
+                    <div class="col-auto">
+                        <a href="<?= $_SERVER['PHP_SELF'] ?>#vehiculos" class="btn btn-danger">Quitar filtro</a>
+                    </div>
+                </form>
+
+                <div class="table-responsive" style="max-height:400px; overflow-y:auto">
+                    <table class="table table-striped align-middle">
+                        <thead class="table-dark">
+                            <tr>
+                                <th>Matrícula</th>
+                                <th>Marca / Modelo</th>
+                                <th>Estado</th>
+                                <th>Kms</th>
+                                <th>Categoría</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <?php foreach ($vehiculos as $v): ?>
+                                <tr>
+                                    <td><?= $v['matricula'] ?></td>
+                                    <td><?= $v['marca'] . ' ' . $v['modelo'] ?></td>
+                                    <td><?= $v['nombreEstado'] ?></td>
+                                    <td><?= $v['kmActual'] ?></td>
+                                    <td><?= $v['nombreCategoria'] ?></td>
+                                </tr>
+                            <?php endforeach; ?>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- reservas -->
+        <div class="card mb-4" id="reservas">
+            <div class="card-body">
+                <h5 class="mb-3">Gestión de Reservas</h5>
+
+                <div class="table-responsive" style="max-height:400px; overflow-y:auto">
+                    <table class="table table-striped align-middle">
+                        <thead class="table-dark">
+                            <tr>
+                                <th>ID</th>
+                                <th>DNI</th>
+                                <th>Cliente</th>
+                                <th>Vehículo</th>
+                                <th>Categoría</th>
+                                <th>Inicio</th>
+                                <th>Fin</th>
+                                <th>Estado</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <?php foreach ($reservas as $r): ?>
+                                <tr>
+                                    <td><?= $r['idReserva'] ?></td>
+                                    <td><?= $r['dni'] ?></td>
+                                    <td><?= $r['nombre'] . ' ' . $r['apellidos'] ?></td>
+                                    <td><?= $r['marca'] . ' ' . $r['modelo'] ?></td>
+                                    <td><?= $r['nombreCategoria'] ?? '—' ?></td>
+                                    <td><?= $r['fechaInicio'] ?></td>
+                                    <td><?= $r['fechaFin'] ?></td>
+                                    <td><?= $r['estado'] ?></td>
+                                </tr>
+                            <?php endforeach; ?>
+                        </tbody>
+                    </table>
+                </div>
+
+            </div>
+        </div>
+
+    </div>
+</body>
+
+</html>
