@@ -236,24 +236,23 @@ require_once 'includes/security.php';
                     <h5 class="footer-title">Enlaces</h5>
                     <nav class="d-flex flex-wrap">
                         <a href="index.php" class="nav-link me-3 mb-1">Home</a>
-                        <a href="/pages/tiendaAlquiler.php" class="nav-link me-3 mb-1">Alquilar</a>
-                        <a href="/pages/tiendaComprar.php" class="nav-link me-3 mb-1">Comprar</a>
-                        <a href="/pages/politicaPrivacidad.php" class="nav-link mb-1">Política de privacidad</a>
+                        <a href="pages/tiendaAlquiler.php" class="nav-link me-3 mb-1">Alquilar</a>
+                        <a href="pages/tiendaComprar.php" class="nav-link me-3 mb-1">Comprar</a>
+                        <a href="pages/politicaPrivacidad.php" class="nav-link mb-1">Política de privacidad</a>
                     </nav>
                 </div>
 
                 <div class="col-md-4 mb-4">
                     <h5 class="footer-title">Siguenos</h5>
                     <div class="d-flex gap-3 mb-3">
-                        <a href="#" class="footer-icon"><i class="bi bi-facebook"></i></a>
-                        <a href="#" class="footer-icon"><i class="bi bi-instagram"></i></a>
-                        <a href="#" class="footer-icon"><i class="bi bi-twitter"></i></a>
-                        <a href="#" class="footer-icon"><i class="bi bi-linkedin"></i></a>
+                        <a href="https://www.facebook.com" class="footer-icon"><i class="bi bi-facebook"></i></a>
+                        <a href="https://www.instagram.com" class="footer-icon"><i class="bi bi-instagram"></i></a>
+                        <a href="https://www.twitter.com" class="footer-icon"><i class="bi bi-twitter"></i></a>
+                        <a href="https://www.linkedin.com" class="footer-icon"><i class="bi bi-linkedin"></i></a>
                     </div>
                     <p class="mb-2">Suscríbete a nuestro boletín para recibir ofertas exclusivas.</p>
                     <form class="d-flex" role="form">
-                        <input type="email" class="form-control me-2" placeholder="Tu correo"
-                            style="border:1px solid var(--c-silver); border-radius:3px;">
+                        <input type="email" class="form-control me-2" placeholder="Tu correo">
                         <button type="submit" class="btn btn-custom">Suscribirse</button>
                     </form>
                 </div>
