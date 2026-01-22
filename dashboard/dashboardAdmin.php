@@ -4,7 +4,7 @@ require_once '../includes/security.php';
 requireRole(['admin']);
 
 $pdo = getPDO();
-$testeoPagina = true;
+$testeoPagina = false;
 $usuarioProtegido = "00000000X";
 
 // Empleados

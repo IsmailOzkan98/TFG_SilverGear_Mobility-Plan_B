@@ -4,7 +4,7 @@ require_once '../includes/security.php';
 requireRole(['mecanico', 'admin']);
 
 $pdo = getPDO();
-$testeoPagina = true;
+$testeoPagina = false;
 
 
 //Total flota
