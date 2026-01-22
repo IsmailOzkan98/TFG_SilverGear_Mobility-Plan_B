@@ -3,12 +3,11 @@ require_once '../includes/common.php';
 $pdo = getPDO();
 
 
-//iniciarsesion si no esta iniciada
 if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
 
-//autoredireccion en caso si estas logueado
+//autoredireccion si esta logueado
 if (isset($_SESSION['usuario']['rol'])) {
     $rol = $_SESSION['usuario']['rol'];
     if ($rol === 'cliente') {
@@ -28,7 +27,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
     $email = $_POST["email"] ?? "";
     $password = $_POST["password"] ?? "";
 
-    // Validaciones
+    //Validaciones
     if (validarEmail($email, $pdo, false) !== true || empty($password)) {
         $error = "Email o contraseña invalidos";
     } else {
@@ -47,7 +46,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
 
         if ($usuario && password_verify($password, $usuario['contrasena'])) {
 
-            // Guardar la sesión
+            //Guardar la sesion
             $_SESSION['usuario'] = [
                 'idUsuario' => $usuario['idUsuario'],
                 'nombre' => $usuario['nombre'],
@@ -56,7 +55,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                 'dni' => $usuario['dni']
             ];
 
-            // redireccion auto segun tu rol
+            //redireccion auto segun rol
             if ($usuario['nombreRol'] === 'cliente') {
                 header("Location: tiendaComprar.php");
             } else if ($usuario['nombreRol'] === 'admin') {
@@ -89,12 +88,10 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
 
-    <!-- Estilos CSS -->
     <link rel="stylesheet" href="../css/style.css">
 </head>
 
 <body>
-    <!-- Contenedores -->
     <div id="header-container"></div>
     <div id="main-container">
         <section class="bgblock" style="background-image: url('../images/backgroundLogin.jpg'); max-width: 1400px;">
@@ -104,7 +101,6 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                 <div class="glass" style="max-width: 500px; width: 100%;">
                     <h1 class="display-5 fw-bold mb-4 text-center">Inicia Sesión</h1>
 
-                    <!-- mensaje de error PHP -->
                     <?php if (!empty($error)): ?>
                         <div class="alert alert-danger text-center">
                             <?= $error ?>
@@ -122,7 +118,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
                             Iniciar Sesión
                         </button>
 
-                        <a href="#" class="btn btn-custom mt-2">Recuperar Contraseña</a>
+                        <a href="recuperarPass.php" class="btn btn-custom mt-2">Recuperar Contraseña</a>
                         <a href="registrar.php" class="btn btn-custom mt-2">No tengo cuenta</a>
 
                     </form>
