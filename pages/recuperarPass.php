@@ -1,6 +1,7 @@
 <?php
 session_start();
 require_once '../includes/common.php';
+require_once '../includes/security.php';
 
 $pdo = getPDO();
 $errores = [];
@@ -31,7 +32,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
     }
 
-  
+
     if (isset($_POST['cambiarPass'])) {
 
         $pass = $_POST['contrasena'] ?? '';
@@ -78,74 +79,158 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
 <body>
 
-<section class="bgblock" style="background-image: url('../images/backgroundRecuperar.jpg'); max-width: 1400px;">
-    <div class="bgblock-content d-flex justify-content-center align-items-center" style="min-height: 500px;">
+    <!-- Header -->
+    <div id="header-container">
+        <header class="py-3" style="background: var(--c-light); color: var(--c-dark);">
+            <nav class="navbar navbar-expand-lg">
+                <div class="container">
 
-        <div class="glass" style="max-width: 500px; width: 100%;">
-            <h1 class="display-5 fw-bold mb-4 text-center">Recuperar Contraseña</h1>
+                    <div class="d-flex align-items-center gap-3">
 
-            <!-- ERRORES -->
-            <?php if (!empty($errores)): ?>
-                <div class="alert alert-danger">
-                    <?php foreach ($errores as $e): ?>
-                        <div><?= htmlspecialchars($e) ?></div>
-                    <?php endforeach; ?>
+                        <a class="logo" href="#">
+                            <img src="../images/Logo-500x500T.png" alt="SilverGear Mobility Logo" height="60">
+                        </a>
+
+                        <?php if ($weather): ?>
+                            <div class="d-flex align-items-center px-2 py-1 weather-block">
+                                <img src="https://openweathermap.org/img/wn/<?= $weather['icon'] ?>.png" alt="Icono del clima">
+                                <span class="ms-1 fw-bold">
+                                    <?= $weather['city'] ?> · <?= $weather['temp'] ?>°C
+                                </span>
+                            </div>
+                        <?php endif; ?>
+
+                    </div>
+
+
+
+                    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav"
+                        aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                        <span class="navbar-toggler-icon"></span>
+                    </button>
+
+                    <div class="collapse navbar-collapse justify-content-end" id="navbarNav">
+                        <ul class="navbar-nav text-center">
+
+                            <?php
+                            $rolesDashboard = ['admin', 'ventas', 'limpieza', 'dropoff', 'mecanico'];
+                            $rol = getUserRole();
+                            ?>
+
+                            <?php if (in_array($rol, $rolesDashboard)): ?>
+
+
+                                <li class="nav-item">
+                                    <a class="nav-link fw-bold text-warning" href="<?= volverSegunRol() ?>">
+                                        Volver a Dashboard <?= ucfirst($rol) ?>
+                                    </a>
+                                </li>
+
+                            <?php endif; ?>
+                            <li class="nav-item">
+                                <a href="../index.php" class="nav-link me-3 mb-1">Home</a>
+                            </li>
+
+                            <?php if (!isset($_SESSION['usuario'])): ?>
+                                <li class="nav-item">
+                                    <a href="login.php" class="nav-link me-3 mb-1">Login</a>
+                                </li>
+                            <?php else: ?>
+                                <li class="nav-item">
+                                    <a href="miPerfil.php" class="nav-link me-3 mb-1">Mi Perfil</a>
+                                </li>
+                                <li class="nav-item">
+                                    <a href="tiendaAlquiler.php" class="nav-link me-3 mb-1">Alquilar</a>
+                                </li>
+                                <li class="nav-item">
+                                    <a href="tiendaComprar.php" class="nav-link me-3 mb-1">Comprar</a>
+                                </li>
+                                <li class="nav-item">
+                                    <a href="cesta.php" class="nav-link me-3 mb-1">🛒</a>
+                                </li>
+                                <li class="nav-item">
+                                    <a class="nav-link me-3 mb-1" href="../includes/logout.php">Log Out</a>
+                                </li>
+                            <?php endif; ?>
+                        </ul>
+                    </div>
+
                 </div>
-            <?php endif; ?>
+            </nav>
+        </header>
+        <div class="divider"></div>
 
-            <form method="POST" class="d-flex flex-column">
+    </div>
 
-                <!-- EMAIL -->
-                <?php if (!isset($_SESSION['recuperar_id'])): ?>
-                    <input type="email"
-                           class="form-control mb-3"
-                           name="email"
-                           placeholder="Tu email"
-                           required>
+    <section class="bgblock" style="background-image: url('../images/backgroundRecuperar.jpg'); max-width: 1400px;">
+        <div class="bgblock-content d-flex justify-content-center align-items-center" style="min-height: 500px;">
 
-                    <button type="submit"
+            <div class="glass" style="max-width: 500px; width: 100%;">
+                <h1 class="display-5 fw-bold mb-4 text-center">Recuperar Contraseña</h1>
+
+                <!-- ERRORES -->
+                <?php if (!empty($errores)): ?>
+                    <div class="alert alert-danger">
+                        <?php foreach ($errores as $e): ?>
+                            <div><?= htmlspecialchars($e) ?></div>
+                        <?php endforeach; ?>
+                    </div>
+                <?php endif; ?>
+
+                <form method="POST" class="d-flex flex-column">
+
+                    <!-- EMAIL -->
+                    <?php if (!isset($_SESSION['recuperar_id'])): ?>
+                        <input type="email"
+                            class="form-control mb-3"
+                            name="email"
+                            placeholder="Tu email"
+                            required>
+
+                        <button type="submit"
                             name="validarEmail"
                             class="btn btn-custom mt-2 mb-3">
-                        Validar Email
-                    </button>
-                <?php endif; ?>
+                            Validar Email
+                        </button>
+                    <?php endif; ?>
 
-                <!-- NUEVA PASS -->
-                <?php if (isset($_SESSION['recuperar_id'])): ?>
-                    <h3 class="text-center mb-3">
-                        Bienvenido <?= htmlspecialchars($_SESSION['recuperar_nombre']) ?>
-                    </h3>
+                    <!-- NUEVA PASS -->
+                    <?php if (isset($_SESSION['recuperar_id'])): ?>
+                        <h3 class="text-center mb-3">
+                            Bienvenido <?= htmlspecialchars($_SESSION['recuperar_nombre']) ?>
+                        </h3>
 
-                    <input type="password"
-                           class="form-control mb-3"
-                           name="contrasena"
-                           placeholder="Nueva Contraseña"
-                           required>
+                        <input type="password"
+                            class="form-control mb-3"
+                            name="contrasena"
+                            placeholder="Nueva Contraseña"
+                            required>
 
-                    <input type="password"
-                           class="form-control mb-3"
-                           name="repetirContrasena"
-                           placeholder="Repetir Contraseña"
-                           required>
+                        <input type="password"
+                            class="form-control mb-3"
+                            name="repetirContrasena"
+                            placeholder="Repetir Contraseña"
+                            required>
 
-                    <button type="submit"
+                        <button type="submit"
                             name="cambiarPass"
                             class="btn btn-custom mt-2 mb-3">
-                        Cambiar Contraseña
-                    </button>
-                <?php endif; ?>
+                            Cambiar Contraseña
+                        </button>
+                    <?php endif; ?>
 
-                <button type="button"
+                    <button type="button"
                         class="btn btn-custom mt-2"
                         onclick="location.href='login.php'">
-                    Volver al Login
-                </button>
+                        Volver al Login
+                    </button>
 
-            </form>
+                </form>
+            </div>
         </div>
-    </div>
-</section>
+    </section>
 
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 </body>
+
 </html>

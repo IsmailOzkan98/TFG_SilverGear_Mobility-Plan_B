@@ -317,21 +317,18 @@ function volverSegunRol(?string $rol = null): string
         $rol = $_SESSION['usuario']['rol'] ?? null;
     }
 
-    // Array de roles y sus paginas
     $dashboards = [
-        'admin' => '../dashboard/dashboardAdmin.php',
-        'mecanico' => '../dashboard/dashboardMecanico.php',
-        'cliente' => '../pages/miPerfil.php',
+        'admin'     => '../dashboard/dashboardAdmin.php',
+        'ventas'    => '../dashboard/dashboardVentas.php',
+        'limpieza'  => '../dashboard/dashboardLimpieza.php',
+        'dropoff'   => '../dashboard/dashboardDropoff.php',
+        'mecanico'  => '../dashboard/dashboardMecanico.php',
+        'cliente'  => '../pages/miPerfil.php',
     ];
 
-
-    if (isset($dashboards[$rol])) {
-        return $dashboards[$rol];
-    }
-
-    // Rol desconocido 
-    return 'index.php';
+    return $dashboards[$rol] ?? 'index.php';
 }
+
 
     
 //obtener precio de la categoria

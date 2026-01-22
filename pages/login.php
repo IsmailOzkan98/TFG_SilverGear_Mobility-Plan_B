@@ -1,5 +1,6 @@
 <?php
 require_once '../includes/common.php';
+require_once '../includes/security.php';
 $pdo = getPDO();
 
 
@@ -92,7 +93,88 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
 </head>
 
 <body>
-    <div id="header-container"></div>
+    <!-- Header -->
+    <div id="header-container">
+        <header class="py-3" style="background: var(--c-light); color: var(--c-dark);">
+            <nav class="navbar navbar-expand-lg">
+                <div class="container">
+
+                    <div class="d-flex align-items-center gap-3">
+
+                        <a class="logo" href="#">
+                            <img src="../images/Logo-500x500T.png" alt="SilverGear Mobility Logo" height="60">
+                        </a>
+
+                        <?php if ($weather): ?>
+                            <div class="d-flex align-items-center px-2 py-1 weather-block">
+                                <img src="https://openweathermap.org/img/wn/<?= $weather['icon'] ?>.png" alt="Icono del clima">
+                                <span class="ms-1 fw-bold">
+                                    <?= $weather['city'] ?> · <?= $weather['temp'] ?>°C
+                                </span>
+                            </div>
+                        <?php endif; ?>
+
+                    </div>
+
+
+
+                    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav"
+                        aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                        <span class="navbar-toggler-icon"></span>
+                    </button>
+
+                    <div class="collapse navbar-collapse justify-content-end" id="navbarNav">
+                        <ul class="navbar-nav text-center">
+
+                            <?php
+                            $rolesDashboard = ['admin', 'ventas', 'limpieza', 'dropoff', 'mecanico'];
+                            $rol = getUserRole();
+                            ?>
+
+                            <?php if (in_array($rol, $rolesDashboard)): ?>
+
+
+                                <li class="nav-item">
+                                    <a class="nav-link fw-bold text-warning" href="<?= volverSegunRol() ?>">
+                                        Volver a Dashboard <?= ucfirst($rol) ?>
+                                    </a>
+                                </li>
+
+                            <?php endif; ?>
+                            <li class="nav-item">
+                                <a href="../index.php" class="nav-link me-3 mb-1">Home</a>
+                            </li>
+
+                            <?php if (!isset($_SESSION['usuario'])): ?>
+                                <li class="nav-item">
+                                    <a href="login.php" class="nav-link me-3 mb-1">Login</a>
+                                </li>
+                            <?php else: ?>
+                                <li class="nav-item">
+                                    <a href="miPerfil.php" class="nav-link me-3 mb-1">Mi Perfil</a>
+                                </li>
+                                <li class="nav-item">
+                                    <a href="tiendaAlquiler.php" class="nav-link me-3 mb-1">Alquilar</a>
+                                </li>
+                                <li class="nav-item">
+                                    <a href="tiendaComprar.php" class="nav-link me-3 mb-1">Comprar</a>
+                                </li>
+                                <li class="nav-item">
+                                    <a href="cesta.php" class="nav-link me-3 mb-1">🛒</a>
+                                </li>
+                                <li class="nav-item">
+                                    <a class="nav-link me-3 mb-1" href="../includes/logout.php">Log Out</a>
+                                </li>
+                            <?php endif; ?>
+                        </ul>
+                    </div>
+
+                </div>
+            </nav>
+        </header>
+        <div class="divider"></div>
+
+    </div>
     <div id="main-container">
         <section class="bgblock" style="background-image: url('../images/backgroundLogin.jpg'); max-width: 1400px;">
 
