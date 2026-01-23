@@ -54,7 +54,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
 
         $vehiculo = new Vehiculo($datos, $pdo);
-        $resultado = $vehiculo->guardar();
+        $resultado = $vehiculo->guardarNuevo();
 
         if (!empty($resultado['errores'])) {
             $errores = $resultado['errores'];

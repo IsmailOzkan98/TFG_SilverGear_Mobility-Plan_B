@@ -1,7 +1,8 @@
 <?php
 require_once 'common.php';
 
-class Vehiculo {
+class Vehiculo
+{
     public $matricula;
     public $marca;
     public $modelo;
@@ -38,7 +39,8 @@ class Vehiculo {
         7 => 'ALQUILADO'
     ];
 
-    public function __construct($datos, PDO $pdo) {
+    public function __construct($datos, PDO $pdo)
+    {
         $this->pdo = $pdo;
 
         $this->matricula = $datos['matricula'] ?? '';
@@ -67,20 +69,24 @@ class Vehiculo {
         $this->actualizarDisponibilidad();
     }
 
-    public function actualizarDisponibilidad() {
+    public function actualizarDisponibilidad()
+    {
         $nombre = self::$estadoNombres[$this->idEstado] ?? '';
-        $this->disponibilidad = in_array($nombre, ['LIMPIO','SUCIO','IMPRO','VENTAS','BAJA','VENDIDO','ALQUILADO']);
+        $this->disponibilidad = in_array($nombre, ['LIMPIO', 'SUCIO', 'IMPRO', 'VENTAS', 'BAJA', 'VENDIDO', 'ALQUILADO']);
     }
 
-    public function esAlquilable(): bool {
-        return in_array(self::$estadoNombres[$this->idEstado] ?? '', ['LIMPIO','SUCIO']);
+    public function esAlquilable(): bool
+    {
+        return in_array(self::$estadoNombres[$this->idEstado] ?? '', ['LIMPIO', 'SUCIO']);
     }
 
-    public function esVendible(): bool {
+    public function esVendible(): bool
+    {
         return (self::$estadoNombres[$this->idEstado] ?? '') === 'VENTAS';
     }
 
-    public function guardar() {
+    public function guardar()
+    {
         try {
             $stmt = $this->pdo->prepare("
                 UPDATE Vehiculo SET 
@@ -115,13 +121,63 @@ class Vehiculo {
             ]);
 
             return ['exito' => true];
-
         } catch (PDOException $e) {
             return ['errores' => ['general' => $e->getMessage()]];
         }
     }
 
-    public static function obtenerNombreEstado($idEstado) {
+    
+    public function guardarNuevo()
+    {
+        try {
+            $stmt = $this->pdo->prepare("
+            INSERT INTO Vehiculo (
+                matricula, marca, modelo, anio, color,
+                numeroPlazas, tipoPropulsion, transmision,
+                idCategoria, idEstado, disponibilidad,
+                kmInicial, kmActual, fechaUltimaRevision, fechaProximaRevision,
+                precioAdquisicion, fechaAdquisicion, notasInternas, manipuladoPor
+            ) VALUES (
+                :matricula, :marca, :modelo, :anio, :color,
+                :numeroPlazas, :tipoPropulsion, :transmision,
+                :idCategoria, :idEstado, :disponibilidad,
+                :kmInicial, :kmActual, :fechaUltimaRevision, :fechaProximaRevision,
+                :precioAdquisicion, :fechaAdquisicion, :notasInternas, :manipuladoPor
+            )
+        ");
+
+            $stmt->execute([
+                ':matricula' => $this->matricula,
+                ':marca' => $this->marca,
+                ':modelo' => $this->modelo,
+                ':anio' => $this->anio,
+                ':color' => $this->color,
+                ':numeroPlazas' => $this->numeroPlazas,
+                ':tipoPropulsion' => $this->tipoPropulsion,
+                ':transmision' => $this->transmision,
+                ':idCategoria' => $this->idCategoria,
+                ':idEstado' => $this->idEstado,
+                ':disponibilidad' => $this->disponibilidad ?? 1,
+                ':kmInicial' => $this->kmInicial,
+                ':kmActual' => $this->kmActual,
+                ':fechaUltimaRevision' => $this->fechaUltimaRevision,
+                ':fechaProximaRevision' => $this->fechaProximaRevision,
+                ':precioAdquisicion' => $this->precioAdquisicion,
+                ':fechaAdquisicion' => $this->fechaAdquisicion,
+                ':notasInternas' => $this->notasInternas,
+                ':manipuladoPor' => $this->manipuladoPor
+            ]);
+
+            return ['exito' => true];
+        } catch (PDOException $e) {
+            return ['errores' => ['general' => $e->getMessage()]];
+        }
+    }
+
+
+
+    public static function obtenerNombreEstado($idEstado)
+    {
         return self::$estadoNombres[$idEstado] ?? '';
     }
 }
