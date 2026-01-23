@@ -142,8 +142,8 @@ $penalizaciones = $stmt->fetchAll(PDO::FETCH_ASSOC);
                         <a href="miPerfil.php" class="btn btn-custom">Volver a mi perfil</a>
                     </div>
                 <?php else: ?>
-                    <div class="table-responsive glass p-3">
-                        <table class="table table-striped">
+                    <div class="table-responsive-md glass p-3">
+                        <table class="table table-striped table-sm">
                             <thead>
                                 <tr>
                                     <th>Vehículo</th>
