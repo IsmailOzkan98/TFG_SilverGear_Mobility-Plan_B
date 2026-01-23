@@ -186,173 +186,177 @@ $categorias = $pdo->query("SELECT idCategoria, nombreCategoria FROM Categoria OR
 
     </div>
 
-    <div class="container mt-4">
-        <div class="container-fluid mt-4">
-            <div class="row">
+    <div id="main-container">
+        <div class="container mt-4">
+            <div class="container-fluid mt-4">
+                <div class="row">
 
-                <!-- FILTROS -->
-                <div class="col-12 col-md-3 mb-3">
-                    <div class="glass p-3" style="min-height: 100%;">
+                    <!-- FILTROS -->
+                    <div class="col-12 col-md-3 mb-3">
+                        <div class="glass p-3" style="min-height: 100%;">
 
-                        <h4 class="mb-3" style="font-family: 'Rajdhani'; letter-spacing: 3px;">
-                            FILTROS
-                        </h4>
+                            <h4 class="mb-3" style="font-family: 'Rajdhani'; letter-spacing: 3px;">
+                                FILTROS
+                            </h4>
 
-                        <form method="GET">
+                            <form method="GET">
 
-                            <!-- Marca -->
-                            <div class="mb-3">
-                                <label class="form-label">Marca</label>
-                                <select class="form-select" name="marca">
-                                    <option value="">Seleccione</option>
-                                    <?php foreach ($marcas as $m): ?>
-                                        <option value="<?= htmlspecialchars($m) ?>"
-                                            <?= ($_GET['marca'] ?? '') == $m ? 'selected' : '' ?>>
-                                            <?= htmlspecialchars($m) ?>
-                                        </option>
-                                    <?php endforeach; ?>
-                                </select>
-                            </div>
-
-                            <!-- Modelo -->
-                            <div class="mb-3">
-                                <label class="form-label">Modelo</label>
-                                <select class="form-select" name="modelo">
-                                    <option value="">Seleccione</option>
-                                    <?php foreach ($modelosFiltro as $mod): ?>
-                                        <option value="<?= htmlspecialchars($mod) ?>"
-                                            <?= ($_GET['modelo'] ?? '') == $mod ? 'selected' : '' ?>>
-                                            <?= htmlspecialchars($mod) ?>
-                                        </option>
-                                    <?php endforeach; ?>
-                                </select>
-                            </div>
-
-                            <!-- Categoría -->
-                            <div class="mb-3">
-                                <label class="form-label">Categoría</label>
-                                <select class="form-select" name="categoria">
-                                    <option value="">Seleccione</option>
-                                    <?php foreach ($categorias as $c): ?>
-                                        <option value="<?= $c['idCategoria'] ?>"
-                                            <?= ($_GET['categoria'] ?? '') == $c['idCategoria'] ? 'selected' : '' ?>>
-                                            <?= htmlspecialchars($c['nombreCategoria']) ?>
-                                        </option>
-                                    <?php endforeach; ?>
-                                </select>
-                            </div>
-
-                            <!-- Precio -->
-                            <div class="mb-3">
-                                <label class="form-label">Precio / día (€)</label>
-                                <div class="d-flex gap-2">
-                                    <input type="number"
-                                        class="form-control"
-                                        name="precio_min"
-                                        placeholder="Min"
-                                        value="<?= $_GET['precio_min'] ?? '' ?>">
-                                    <input type="number"
-                                        class="form-control"
-                                        name="precio_max"
-                                        placeholder="Max"
-                                        value="<?= $_GET['precio_max'] ?? '' ?>">
+                                <!-- Marca -->
+                                <div class="mb-3">
+                                    <label class="form-label">Marca</label>
+                                    <select class="form-select" name="marca">
+                                        <option value="">Seleccione</option>
+                                        <?php foreach ($marcas as $m): ?>
+                                            <option value="<?= htmlspecialchars($m) ?>"
+                                                <?= ($_GET['marca'] ?? '') == $m ? 'selected' : '' ?>>
+                                                <?= htmlspecialchars($m) ?>
+                                            </option>
+                                        <?php endforeach; ?>
+                                    </select>
                                 </div>
-                            </div>
 
-                            <button type="submit" class="btn btn-custom w-100 mb-2">
-                                Aplicar filtros
-                            </button>
+                                <!-- Modelo -->
+                                <div class="mb-3">
+                                    <label class="form-label">Modelo</label>
+                                    <select class="form-select" name="modelo">
+                                        <option value="">Seleccione</option>
+                                        <?php foreach ($modelosFiltro as $mod): ?>
+                                            <option value="<?= htmlspecialchars($mod) ?>"
+                                                <?= ($_GET['modelo'] ?? '') == $mod ? 'selected' : '' ?>>
+                                                <?= htmlspecialchars($mod) ?>
+                                            </option>
+                                        <?php endforeach; ?>
+                                    </select>
+                                </div>
 
-                            <a href="tiendaAlquiler.php" class="btn btn-custom w-100">
-                                Quitar filtros
-                            </a>
+                                <!-- Categoría -->
+                                <div class="mb-3">
+                                    <label class="form-label">Categoría</label>
+                                    <select class="form-select" name="categoria">
+                                        <option value="">Seleccione</option>
+                                        <?php foreach ($categorias as $c): ?>
+                                            <option value="<?= $c['idCategoria'] ?>"
+                                                <?= ($_GET['categoria'] ?? '') == $c['idCategoria'] ? 'selected' : '' ?>>
+                                                <?= htmlspecialchars($c['nombreCategoria']) ?>
+                                            </option>
+                                        <?php endforeach; ?>
+                                    </select>
+                                </div>
 
-                        </form>
-                    </div>
-                </div>
-
-                <!-- LISTADO -->
-                <div class="col-12 col-md-9">
-                    <div class="row g-4">
-                        <?php foreach ($vehiculos as $v): ?>
-                            <div class="col-12 col-sm-6 col-lg-4">
-                                <div class="card h-100 vehicle-card">
-                                    <!-- Imagen con ratio fijo -->
-                                    <div class="ratio vehicle-img-ratio" style="--bs-aspect-ratio: 80%;">
-                                        <img src="<?= isset($v['imagenPrincipal']) ? '../images/vehiculos/' . htmlspecialchars($v['imagenPrincipal']) : '../images/default-car.jpg' ?>"
-                                            class="img-fluid object-fit-cover"
-                                            alt="Imagen de <?= htmlspecialchars($v['marca'] . ' ' . $v['modelo']) ?>">
-                                    </div>
-
-                                    <!-- Contenido de la card -->
-                                    <div class="card-body">
-                                        <h6 class="card-title mb-1"><?= htmlspecialchars($v['marca'] . ' ' . $v['modelo']) ?></h6>
-                                        <p class="mb-1"><?= htmlspecialchars($v['nombreCategoria']) ?></p>
-                                        <p class="fw-bold mb-0">Desde <?= number_format($v['precioBase'], 2) ?>€ / día</p>
-
-                                        <?php if ($v['disponibilidad']): ?>
-                                            <a href="articuloAlquiler.php?idVehiculo=<?= $v['idVehiculo'] ?>" class="btn btn-custom w-100 mt-2">Ver Detalles</a>
-                                        <?php else: ?>
-                                            <p class="text-danger fw-bold mt-2">NO DISPONIBLE</p>
-                                        <?php endif; ?>
+                                <!-- Precio -->
+                                <div class="mb-3">
+                                    <label class="form-label">Precio / día (€)</label>
+                                    <div class="d-flex gap-2">
+                                        <input type="number"
+                                            class="form-control"
+                                            name="precio_min"
+                                            placeholder="Min"
+                                            value="<?= $_GET['precio_min'] ?? '' ?>">
+                                        <input type="number"
+                                            class="form-control"
+                                            name="precio_max"
+                                            placeholder="Max"
+                                            value="<?= $_GET['precio_max'] ?? '' ?>">
                                     </div>
                                 </div>
-                            </div>
-                        <?php endforeach; ?>
-                    </div>
-                </div>
 
-            </div>
+                                <button type="submit" class="btn btn-custom w-100 mb-2">
+                                    Aplicar filtros
+                                </button>
 
-            <!-- Footer -->
-            <footer class="pt-5 pb-3" style="background: var(--c-light); color: var(--c-dark);">
-                <div class="container">
-                    <div class="row">
+                                <a href="tiendaAlquiler.php" class="btn btn-custom w-100">
+                                    Quitar filtros
+                                </a>
 
-                        <div class="col-md-4 mb-4">
-                            <h5 class="footer-title">Contacto</h5>
-                            <p>Carretera Torrellano-Aeropuerto, CV-852, km 1.5, 03320 Alicante</p>
-                            <p>Tel: +34 123 456 789</p>
-                            <p>Email: info@silvergearmobility.com</p>
-                            <p>Horario: Lunes - Domingo, 7:00 - 23:00</p>
-                        </div>
-
-                        <div class="col-md-4 mb-4">
-                            <h5 class="footer-title">Enlaces</h5>
-                            <nav class="d-flex flex-wrap">
-                                <a href="../index.php" class="nav-link me-3 mb-1">Home</a>
-                                <a href="tiendaAlquiler.php" class="nav-link me-3 mb-1">Alquilar</a>
-                                <a href="tiendaComprar.php" class="nav-link me-3 mb-1">Comprar</a>
-                                <a href="politicaPrivacidad.php" class="nav-link mb-1">Política de privacidad</a>
-                            </nav>
-                        </div>
-
-                        <div class="col-md-4 mb-4">
-                            <h5 class="footer-title">Siguenos</h5>
-                            <div class="d-flex gap-3 mb-3">
-                                <a href="https://www.facebook.com" class="footer-icon"><i class="bi bi-facebook"></i></a>
-                                <a href="https://www.instagram.com" class="footer-icon"><i class="bi bi-instagram"></i></a>
-                                <a href="https://www.twitter.com" class="footer-icon"><i class="bi bi-twitter"></i></a>
-                                <a href="https://www.linkedin.com" class="footer-icon"><i class="bi bi-linkedin"></i></a>
-                            </div>
-                            <p class="mb-2">Suscríbete a nuestro boletín para recibir ofertas exclusivas.</p>
-                            <form class="d-flex" role="form">
-                                <input type="email" class="form-control me-2" placeholder="Tu correo">
-                                <button type="submit" class="btn btn-custom">Suscribirse</button>
                             </form>
                         </div>
                     </div>
 
-                    <hr style="border-top:1px solid var(--c-silver); margin:2rem 0 1rem 0;">
-                    <div class="text-center">
-                        <p class="mb-0">&copy; 2025 SilverGear Mobility. Sistema de reserva activado.</p>
+                    <!-- LISTADO -->
+                    <div class="col-12 col-md-9">
+                        <div class="row g-4">
+                            <?php foreach ($vehiculos as $v): ?>
+                                <div class="col-12 col-sm-6 col-lg-4">
+                                    <div class="card h-100 vehicle-card">
+                                        <!-- Imagen con ratio fijo -->
+                                        <div class="ratio vehicle-img-ratio" style="--bs-aspect-ratio: 80%;">
+                                            <img src="<?= isset($v['imagenPrincipal']) ? '../images/vehiculos/' . htmlspecialchars($v['imagenPrincipal']) : '../images/default-car.jpg' ?>"
+                                                class="img-fluid object-fit-cover"
+                                                alt="Imagen de <?= htmlspecialchars($v['marca'] . ' ' . $v['modelo']) ?>">
+                                        </div>
+
+                                        <!-- Contenido de la card -->
+                                        <div class="card-body">
+                                            <h6 class="card-title mb-1"><?= htmlspecialchars($v['marca'] . ' ' . $v['modelo']) ?></h6>
+                                            <p class="mb-1"><?= htmlspecialchars($v['nombreCategoria']) ?></p>
+                                            <p class="fw-bold mb-0">Desde <?= number_format($v['precioBase'], 2) ?>€ / día</p>
+
+                                            <?php if ($v['disponibilidad']): ?>
+                                                <a href="articuloAlquiler.php?idVehiculo=<?= $v['idVehiculo'] ?>" class="btn btn-custom w-100 mt-2">Ver Detalles</a>
+                                            <?php else: ?>
+                                                <p class="text-danger fw-bold mt-2">NO DISPONIBLE</p>
+                                            <?php endif; ?>
+                                        </div>
+                                    </div>
+                                </div>
+                            <?php endforeach; ?>
+                        </div>
                     </div>
+
                 </div>
-            </footer>
 
-            <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+                <!-- Footer -->
+                <footer class="pt-5 pb-3" style="background: var(--c-light); color: var(--c-dark);">
+                    <div class="container">
+                        <div class="row">
 
+                            <div class="col-md-4 mb-4">
+                                <h5 class="footer-title">Contacto</h5>
+                                <p>Carretera Torrellano-Aeropuerto, CV-852, km 1.5, 03320 Alicante</p>
+                                <p>Tel: +34 123 456 789</p>
+                                <p>Email: info@silvergearmobility.com</p>
+                                <p>Horario: Lunes - Domingo, 7:00 - 23:00</p>
+                            </div>
+
+                            <div class="col-md-4 mb-4">
+                                <h5 class="footer-title">Enlaces</h5>
+                                <nav class="d-flex flex-wrap">
+                                    <a href="../index.php" class="nav-link me-3 mb-1">Home</a>
+                                    <a href="tiendaAlquiler.php" class="nav-link me-3 mb-1">Alquilar</a>
+                                    <a href="tiendaComprar.php" class="nav-link me-3 mb-1">Comprar</a>
+                                    <a href="politicaPrivacidad.php" class="nav-link mb-1">Política de privacidad</a>
+                                </nav>
+                            </div>
+
+                            <div class="col-md-4 mb-4">
+                                <h5 class="footer-title">Siguenos</h5>
+                                <div class="d-flex gap-3 mb-3">
+                                    <a href="https://www.facebook.com" class="footer-icon"><i class="bi bi-facebook"></i></a>
+                                    <a href="https://www.instagram.com" class="footer-icon"><i class="bi bi-instagram"></i></a>
+                                    <a href="https://www.twitter.com" class="footer-icon"><i class="bi bi-twitter"></i></a>
+                                    <a href="https://www.linkedin.com" class="footer-icon"><i class="bi bi-linkedin"></i></a>
+                                </div>
+                                <p class="mb-2">Suscríbete a nuestro boletín para recibir ofertas exclusivas.</p>
+                                <form class="d-flex" role="form">
+                                    <input type="email" class="form-control me-2" placeholder="Tu correo">
+                                    <button type="submit" class="btn btn-custom">Suscribirse</button>
+                                </form>
+                            </div>
+                        </div>
+
+                        <hr style="border-top:1px solid var(--c-silver); margin:2rem 0 1rem 0;">
+                        <div class="text-center">
+                            <p class="mb-0">&copy; 2025 SilverGear Mobility. Sistema de reserva activado.</p>
+                        </div>
+                    </div>
+                </footer>
+
+                <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+
+            </div>
         </div>
+
+
 
 
 </body>
