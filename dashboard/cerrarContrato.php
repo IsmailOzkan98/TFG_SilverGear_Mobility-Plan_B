@@ -1,7 +1,7 @@
 <?php
 require_once '../includes/common.php';
 require_once '../includes/security.php';
-requireRole(['admin', 'ventas']);
+requireRole(['admin', 'dropoff']);
 require_once '../includes/Vehiculo.php';
 require_once '../includes/controlFlota.php';
 

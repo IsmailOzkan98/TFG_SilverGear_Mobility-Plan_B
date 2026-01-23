@@ -10,16 +10,9 @@ if (session_status() === PHP_SESSION_NONE) {
 
 //autoredireccion si esta logueado
 if (isset($_SESSION['usuario']['rol'])) {
-    $rol = $_SESSION['usuario']['rol'];
-    if ($rol === 'cliente') {
-        header("Location: tiendaComprar.php");
-    } else if ($rol === 'admin') {
-        header("Location: ../dashboard/dashboardAdmin.php");
-    } else if ($rol === 'mecanico') {
-        header("Location: ../dashboard/dashboardMecanico.php");
-    }
-    exit;
+    redirigirSegunRol();
 }
+
 
 $error = "";
 
@@ -57,14 +50,19 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
             ];
 
             //redireccion auto segun rol
-            if ($usuario['nombreRol'] === 'cliente') {
-                header("Location: tiendaComprar.php");
-            } else if ($usuario['nombreRol'] === 'admin') {
-                header("Location: ../dashboard/dashboardAdmin.php");
-            } else if ($usuario['nombreRol'] === 'mecanico') {
-                header("Location: ../dashboard/dashboardMecanico.php");
-            }
-            exit;
+            $rol = strtolower($usuario['nombreRol']);
+
+            $_SESSION['usuario'] = [
+                'idUsuario' => $usuario['idUsuario'],
+                'nombre' => $usuario['nombre'],
+                'apellidos' => $usuario['apellidos'],
+                'rol' => $rol,
+                'dni' => $usuario['dni']
+            ];
+
+            redirigirSegunRol($rol);
+
+
         } else {
             $error = "Email o contraseña incorrectos";
         }

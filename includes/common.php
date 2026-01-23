@@ -329,6 +329,25 @@ function volverSegunRol(?string $rol = null): string
     return $dashboards[$rol] ?? 'index.php';
 }
 
+//redirige segun rol principalmente pensado para login.php
+function redirigirSegunRol(?string $rol = null): void
+{
+    if ($rol === null) {
+        $rol = $_SESSION['usuario']['rol'] ?? null;
+    }
+
+    $dashboards = [
+        'admin'     => '../dashboard/dashboardAdmin.php',
+        'ventas'    => '../dashboard/dashboardVentas.php',
+        'limpieza'  => '../dashboard/dashboardLimpieza.php',
+        'dropoff'   => '../dashboard/dashboardDropoff.php',
+        'mecanico'  => '../dashboard/dashboardMecanico.php',
+        'cliente'   => 'tiendaComprar.php',
+    ];
+
+    header('Location: ' . ($dashboards[$rol] ?? '../index.php'));
+    exit;
+}
 
     
 //obtener precio de la categoria
