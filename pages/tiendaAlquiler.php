@@ -97,6 +97,9 @@ $categorias = $pdo->query("SELECT idCategoria, nombreCategoria FROM Categoria OR
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css" rel="stylesheet">
 
     <link rel="stylesheet" href="../css/style.css">
+
+    <!-- Favicon -->
+    <?php imprimirFavicon(); ?>
 </head>
 
 <body>

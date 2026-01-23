@@ -124,6 +124,9 @@ $vehiculos = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
     <link rel="stylesheet" href="../css/style.css">
 
+    <!-- Favicon -->
+    <?php imprimirFavicon(); ?>
+
 </head>
 
 <body>

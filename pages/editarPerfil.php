@@ -85,6 +85,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     <!-- Estilos propios -->
     <link rel="stylesheet" href="../css/style.css">
+
+    <!-- Favicon -->
+    <?php imprimirFavicon(); ?>
 </head>
 
 <body>

@@ -18,6 +18,9 @@ require_once '../includes/security.php';
 
     <!-- Estilos CSS -->
     <link rel="stylesheet" href="../css/style.css">
+
+    <!-- Favicon -->
+    <?php imprimirFavicon(); ?>
 </head>
 
 <body>

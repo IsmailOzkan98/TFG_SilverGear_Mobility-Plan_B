@@ -61,6 +61,7 @@ $totalCompras = $stmt->fetchColumn();
     <meta charset="UTF-8">
     <title>Panel Ventas - SilverGear Mobility</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <?php imprimirFavicon(); ?>
 </head>
 
 <body class="bg-light">
@@ -134,7 +135,10 @@ $totalCompras = $stmt->fetchColumn();
         <!-- clientes -->
         <div class="card mb-4" id="clientes">
             <div class="card-body">
-                <h5 class="mb-3">Gestión de Clientes</h5>
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h5>Gestión de Clientes</h5>
+                    <button class="btn btn-primary" onclick="location.href='../pages/registrar.php'">Crear Usuario Nuevo</button>
+                </div>
 
                 <div class="table-responsive" style="max-height: 400px; overflow-y:auto">
                     <table class="table table-striped align-middle">

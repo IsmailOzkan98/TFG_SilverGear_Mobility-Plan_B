@@ -24,6 +24,15 @@ function getPDO()
     return $pdo;
 }
 
+
+//favicon
+function imprimirFavicon(string $ruta = '../images/favicon/favicon.ico'): void
+{
+    echo '<link rel="icon" href="' . htmlspecialchars($ruta) . '" type="image/x-icon">';
+}
+
+
+
 //Validaciones
 function validarNombre($nombre)
 {

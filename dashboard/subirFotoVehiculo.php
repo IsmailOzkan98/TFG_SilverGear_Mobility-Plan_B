@@ -41,17 +41,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['subirImagen'])) {
     }
 }
 
-//Obtener marcas 
+//marcas 
 $marcas = $pdo->query("SELECT DISTINCT marca FROM Vehiculo ORDER BY marca")->fetchAll(PDO::FETCH_COLUMN);
 
-//Obtener modelos por marca
+//modelos por marca
 $allModelos = [];
 
-//Obtener vehiculos sin estos estados
+//vehiculos sin estados
 $estadosExcluidos = ["VENTAS","VENDIDO","BAJA"];
 $placeholders = implode(',', array_fill(0, count($estadosExcluidos), '?'));
 
-//Consulta con JOIN
+//consulta JOIN
 $stmtModelos = $pdo->prepare("
     SELECT v.marca, v.modelo
     FROM Vehiculo v
@@ -87,6 +87,7 @@ foreach ($stmtModelos->fetchAll(PDO::FETCH_ASSOC) as $row) {
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Subida masiva de imágenes</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <?php imprimirFavicon(); ?>
 </head>
 
 <body class="bg-light">

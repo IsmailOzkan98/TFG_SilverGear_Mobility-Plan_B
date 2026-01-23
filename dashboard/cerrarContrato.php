@@ -12,9 +12,7 @@ $reservas = [];
 $mensaje = '';
 $errores = [];
 
-// ----------------------
-// Buscar cliente por DNI
-// ----------------------
+//buscar por DNI
 if (isset($_GET['dni'])) {
     $dni = strtoupper(trim($_GET['dni']));
 
@@ -25,7 +23,7 @@ if (isset($_GET['dni'])) {
     if (!$cliente) {
         $errores['general'] = "Cliente no encontrado.";
     } else {
-        // Obtener todas las reservas CUBIERTA
+        //reservas CUBIERTA
         $stmtRes = $pdo->prepare("
             SELECT r.*, v.matricula, v.marca, v.modelo, v.idEstado
             FROM Reserva r
@@ -38,9 +36,7 @@ if (isset($_GET['dni'])) {
     }
 }
 
-// ----------------------
-// Cerrar contrato individual
-// ----------------------
+//crear contratro
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['cerrarContrato'])) {
     try {
         $idReserva = $_POST['idReserva'] ?? null;
@@ -75,7 +71,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['cerrarContrato'])) {
             throw new Exception("Estado del vehículo no válido.");
         }
 
-        // Cargar reserva específica
         $stmtRes = $pdo->prepare("
             SELECT r.*, v.matricula, v.marca, v.modelo, v.idEstado
             FROM Reserva r
@@ -89,8 +84,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['cerrarContrato'])) {
 
         $vehiculo = new Vehiculo($datosReserva, $pdo);
 
-        // Aplicar penalización si corresponde
-        // Aplicar penalización si marcada
+        //Aplicar penalizacion
         if ($penalizar && $montoPenalizacion > 0) {
             $stmt = $pdo->prepare("
         INSERT INTO Penalizacion (idReserva, cantidad, nota, dniCliente, matriculaVehiculo)
@@ -106,7 +100,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['cerrarContrato'])) {
         }
 
 
-        // Cambiar estado del vehículo
         cambiarEstadoVehiculo(
             $pdo,
             $vehiculo,
@@ -116,13 +109,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['cerrarContrato'])) {
         );
 
 
-        // Actualizar estado de la reserva
         $stmt = $pdo->prepare("UPDATE Reserva SET estado = 'FINALIZADO' WHERE idReserva = :idReserva");
         $stmt->execute([':idReserva' => $idReserva]);
 
         $mensaje = "Contrato cerrado correctamente.";
 
-        // Refrescar la lista de reservas
+        //Refrescar la lista
         if ($cliente) {
             $stmtRes = $pdo->prepare("
                 SELECT r.*, v.matricula, v.marca, v.modelo, v.idEstado
@@ -144,6 +136,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['cerrarContrato'])) {
 <html lang="es">
 
 <head>
+    <?php imprimirFavicon(); ?>
     <meta charset="UTF-8">
     <title>Cerrar Contrato</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">

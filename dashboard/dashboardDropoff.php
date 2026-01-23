@@ -5,9 +5,6 @@ requireRole(['admin', 'dropoff']);
 
 $pdo = getPDO();
 
-/* =====================
-   RESERVAS CUBIERTAS
-===================== */
 
 $stmt = $pdo->query("
     SELECT r.*, u.nombre, u.apellidos, u.dni,
@@ -34,6 +31,8 @@ $totalCubiertas = count($reservas);
 
     <!-- Bootstrap -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+
+    <?php imprimirFavicon(); ?>
 </head>
 
 <body class="bg-light">
