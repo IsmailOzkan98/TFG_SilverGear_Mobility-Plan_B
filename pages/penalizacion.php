@@ -1,7 +1,7 @@
 <?php
 require_once '../includes/common.php';
 require_once '../includes/security.php';
-requireRole(['admin', 'ventas', 'mecanico', 'cliente']);
+requireRole(['admin', 'cliente', 'ventas', 'mecanico', 'limpieza', 'dropoff']);
 
 $pdo = getPDO();
 $usuarioSesion = $_SESSION['usuario'];

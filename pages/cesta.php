@@ -2,7 +2,7 @@
 require_once '../includes/common.php';
 require_once '../includes/security.php';
 require_once '../includes/Vehiculo.php';
-requireRole(['admin', 'cliente', 'ventas', 'mecanico']);
+requireRole(['admin', 'cliente', 'ventas', 'mecanico', 'limpieza', 'dropoff']);
 
 $pdo = getPDO();
 

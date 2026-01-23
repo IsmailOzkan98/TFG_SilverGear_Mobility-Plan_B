@@ -1,7 +1,7 @@
 <?php
 require_once '../includes/common.php';
 require_once '../includes/security.php';
-requireRole(['admin', 'cliente', 'ventas', 'mecanico']);
+requireRole(['admin', 'cliente', 'ventas', 'mecanico', 'limpieza', 'dropoff']);
 
 $pdo = getPDO();
 
@@ -302,9 +302,22 @@ $vehiculos = $stmt->fetchAll(PDO::FETCH_ASSOC);
                                             <p class="fw-bold mb-0"><?= number_format($vehiculo['kmActual']) ?> km</p>
                                             <br>
                                             <?php if ($vehiculo['disponibilidad']): ?>
-                                                <a href="articuloCompra.php?idVehiculo=<?= $vehiculo['idVehiculo'] ?>" class="btn btn-custom w-100">Ver Detalles</a>
+                                                <a href="articuloCompra.php?idVehiculo=<?= $vehiculo['idVehiculo'] ?>" class="btn btn-custom w-100 mb-2">Ver Detalles</a>
                                             <?php else: ?>
                                                 <p class="fw-bold mb-0 text-danger">NO DISPONIBLE</p>
+                                            <?php endif; ?>
+
+                                            <?php
+                                            $rolesDashboard = ['admin', 'ventas'];
+                                            $rol = getUserRole();
+                                            ?>
+
+                                            <?php if (in_array($rol, $rolesDashboard)): ?>
+
+                                                <a class="btn btn-custom w-100" href="../dashboard/editarArticuloCompra.php?idVehiculo=<?= $vehiculo['idVehiculo'] ?>">
+                                                    Editar articulo
+                                                </a>
+                                                
                                             <?php endif; ?>
                                         </div>
                                     </div>

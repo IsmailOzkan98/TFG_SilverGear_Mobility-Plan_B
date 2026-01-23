@@ -52,6 +52,10 @@ $totalCubiertas = count($reservas);
                             </a>
                         </li>
                     <?php endif; ?>
+                    <li class="nav-item"><a class="nav-link" href="../index.php">INDEX</a></li>
+                    <li class="nav-item"><a class="nav-link" href="../pages/tiendaAlquiler.php">ALQUILER</a></li>
+                    <li class="nav-item"><a class="nav-link" href="../pages/tiendaComprar.php">VENTAS</a></li>
+                    <li class="nav-item"><a class="nav-link" href="../pages/miPerfil.php">MI PERFIL</a></li>
                     <li class="nav-item">
                         <a class="nav-link text-danger" href="../includes/logout.php">
                             Cerrar sesión
