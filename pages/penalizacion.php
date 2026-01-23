@@ -133,7 +133,7 @@ $penalizaciones = $stmt->fetchAll(PDO::FETCH_ASSOC);
     </div>
     <section class="bgblock" style="background-image: url('../images/backgroundPenalizacion.jpg'); max-width: 1400px;">
         <div class="bgblock-content d-flex flex-column align-items-center" style="min-height: 600px; gap: 30px;">
-            <div class="glass" style="max-width: 900px; width: 100%; padding: 30px;">
+            <div class="glass w-100" style="max-width: 900px; padding: 30px;">
                 <h1 class="display-5 fw-bold mb-3 text-center">Mis Penalizaciones</h1>
 
                 <?php if (empty($penalizaciones)): ?>
@@ -142,9 +142,9 @@ $penalizaciones = $stmt->fetchAll(PDO::FETCH_ASSOC);
                         <a href="miPerfil.php" class="btn btn-custom">Volver a mi perfil</a>
                     </div>
                 <?php else: ?>
-                    <div class="table-responsive-md glass p-3">
-                        <table class="table table-striped table-sm">
-                            <thead>
+                    <div class="table-responsive">
+                        <table class="table table-striped table-hover table-sm mb-0">
+                            <thead class="table-dark">
                                 <tr>
                                     <th>Vehículo</th>
                                     <th>Reserva #</th>
@@ -164,9 +164,13 @@ $penalizaciones = $stmt->fetchAll(PDO::FETCH_ASSOC);
                                         <td><?= $p['fechaRegistro'] ?></td>
                                         <td>
                                             <?php if ($p['estadoPenalizacion'] === 'PENDIENTE'): ?>
-                                                <button class="btn btn-custom" data-id="<?= $p['idPenalizacion'] ?>">Pagar</button>
+                                                <button class="btn btn-sm btn-custom w-100" data-id="<?= $p['idPenalizacion'] ?>">
+                                                    Pagar
+                                                </button>
                                             <?php else: ?>
-                                                <span class="btn btn-custom">PAGADO</span>
+                                                <span class="btn btn-sm btn-custom w-100">
+                                                    PAGADO
+                                                </span>
                                             <?php endif; ?>
                                         </td>
                                     </tr>
@@ -178,6 +182,7 @@ $penalizaciones = $stmt->fetchAll(PDO::FETCH_ASSOC);
             </div>
         </div>
     </section>
+
 
     <!-- Footer -->
     <footer class="pt-5 pb-3" style="background: var(--c-light); color: var(--c-dark);">

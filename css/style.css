@@ -331,3 +331,23 @@ h1, h2, h3, h4, h5, h6,
 }
 
 
+/*-------------------------------------------------------------*/
+/* Vista en moviles */
+
+@media (max-width: 576px) {
+    .glass {
+        padding: 15px !important;
+    }
+
+    .table th,
+    .table td {
+        font-size: 0.85rem;
+        white-space: nowrap; 
+    }
+
+    .btn-custom {
+        font-size: 12px;
+        letter-spacing: 1px;
+        padding: 4px 6px;
+    }
+}
