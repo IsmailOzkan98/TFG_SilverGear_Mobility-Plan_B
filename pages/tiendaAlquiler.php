@@ -89,6 +89,7 @@ $categorias = $pdo->query("SELECT idCategoria, nombreCategoria FROM Categoria OR
 
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Tienda Alquiler</title>
 
     <!-- BootStrap -->
@@ -201,7 +202,6 @@ $categorias = $pdo->query("SELECT idCategoria, nombreCategoria FROM Categoria OR
 
                             <form method="GET">
 
-                                <!-- Marca -->
                                 <div class="mb-3">
                                     <label class="form-label">Marca</label>
                                     <select class="form-select" name="marca">
@@ -215,7 +215,6 @@ $categorias = $pdo->query("SELECT idCategoria, nombreCategoria FROM Categoria OR
                                     </select>
                                 </div>
 
-                                <!-- Modelo -->
                                 <div class="mb-3">
                                     <label class="form-label">Modelo</label>
                                     <select class="form-select" name="modelo">
@@ -229,7 +228,6 @@ $categorias = $pdo->query("SELECT idCategoria, nombreCategoria FROM Categoria OR
                                     </select>
                                 </div>
 
-                                <!-- Categoría -->
                                 <div class="mb-3">
                                     <label class="form-label">Categoría</label>
                                     <select class="form-select" name="categoria">
@@ -243,7 +241,6 @@ $categorias = $pdo->query("SELECT idCategoria, nombreCategoria FROM Categoria OR
                                     </select>
                                 </div>
 
-                                <!-- Precio -->
                                 <div class="mb-3">
                                     <label class="form-label">Precio / día (€)</label>
                                     <div class="d-flex gap-2">
@@ -272,20 +269,19 @@ $categorias = $pdo->query("SELECT idCategoria, nombreCategoria FROM Categoria OR
                         </div>
                     </div>
 
-                    <!-- LISTADO -->
+                    <!-- MOSTRAR VH -->
                     <div class="col-12 col-md-9">
                         <div class="row g-4">
                             <?php foreach ($vehiculos as $v): ?>
                                 <div class="col-12 col-sm-6 col-lg-4">
                                     <div class="card h-100 vehicle-card">
-                                        <!-- Imagen con ratio fijo -->
+                                        
                                         <div class="ratio vehicle-img-ratio" style="--bs-aspect-ratio: 80%;">
                                             <img src="<?= isset($v['imagenPrincipal']) ? '../images/vehiculos/' . htmlspecialchars($v['imagenPrincipal']) : '../images/default-car.jpg' ?>"
                                                 class="img-fluid object-fit-cover"
                                                 alt="Imagen de <?= htmlspecialchars($v['marca'] . ' ' . $v['modelo']) ?>">
                                         </div>
 
-                                        <!-- Contenido de la card -->
                                         <div class="card-body">
                                             <h6 class="card-title mb-1"><?= htmlspecialchars($v['marca'] . ' ' . $v['modelo']) ?></h6>
                                             <p class="mb-1"><?= htmlspecialchars($v['nombreCategoria']) ?></p>

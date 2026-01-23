@@ -212,6 +212,9 @@ $vehiculos = $stmt->fetchAll(PDO::FETCH_ASSOC);
         <div class="divider"></div>
 
     </div>
+
+
+
     <div id="main-container">
         <div class="container">
             <div class="container-fluid mt-4">
@@ -231,6 +234,7 @@ $vehiculos = $stmt->fetchAll(PDO::FETCH_ASSOC);
                                         <option value="precio" <?= (isset($_GET['orden']) && $_GET['orden'] == 'precio') ? 'selected' : '' ?>>Más barato primero</option>
                                     </select>
                                 </div>
+
                                 <div class="mb-3">
                                     <label class="form-label">Marca</label>
                                     <select class="form-select" name="marca">
@@ -242,6 +246,7 @@ $vehiculos = $stmt->fetchAll(PDO::FETCH_ASSOC);
                                         <?php endforeach; ?>
                                     </select>
                                 </div>
+
                                 <div class="mb-3">
                                     <label class="form-label">Modelo</label>
                                     <select class="form-select" name="modelo">
@@ -253,6 +258,7 @@ $vehiculos = $stmt->fetchAll(PDO::FETCH_ASSOC);
                                         <?php endforeach; ?>
                                     </select>
                                 </div>
+
                                 <div class="mb-3">
                                     <label class="form-label">Categoría</label>
                                     <select class="form-select" name="categoria">
@@ -264,6 +270,7 @@ $vehiculos = $stmt->fetchAll(PDO::FETCH_ASSOC);
                                         <?php endforeach; ?>
                                     </select>
                                 </div>
+
                                 <div class="mb-3">
                                     <label class="form-label">Precio</label>
                                     <div class="d-flex gap-2">
@@ -271,6 +278,7 @@ $vehiculos = $stmt->fetchAll(PDO::FETCH_ASSOC);
                                         <input type="number" class="form-control" name="precio_max" placeholder="Max" value="<?= $_GET['precio_max'] ?? '' ?>">
                                     </div>
                                 </div>
+
                                 <div class="mb-3">
                                     <label class="form-label">Kilometraje</label>
                                     <div class="d-flex gap-2">
@@ -278,6 +286,7 @@ $vehiculos = $stmt->fetchAll(PDO::FETCH_ASSOC);
                                         <input type="number" class="form-control" name="km_max" placeholder="Max" value="<?= $_GET['km_max'] ?? '' ?>">
                                     </div>
                                 </div>
+                                
                                 <button type="submit" class="btn btn-custom w-100 mb-2">Aplicar filtros</button>
                                 <a href="tiendaComprar.php" class="btn btn-custom w-100">Quitar filtros</a>
                             </form>
