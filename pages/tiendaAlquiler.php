@@ -187,7 +187,7 @@ $categorias = $pdo->query("SELECT idCategoria, nombreCategoria FROM Categoria OR
     </div>
 
     <div id="main-container">
-        <div class="container mt-4">
+        <div class="container">
             <div class="container-fluid mt-4">
                 <div class="row">
 
