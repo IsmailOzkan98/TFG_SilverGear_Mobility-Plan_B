@@ -249,7 +249,14 @@ $totalCompras = $stmt->fetchColumn();
         <!-- reservas -->
         <div class="card mb-4" id="reservas">
             <div class="card-body">
-                <h5 class="mb-3">Gestión de Reservas</h5>
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h5>Gestion de Reservas</h5>
+                    <div>
+                        <button class="btn btn-primary" onclick="location.href='crearReservaTech.php'">Crear Reserva</button>
+                    </div>
+                    
+
+                </div>
 
                 <div class="table-responsive" style="max-height:400px; overflow-y:auto">
                     <table class="table table-striped align-middle">
