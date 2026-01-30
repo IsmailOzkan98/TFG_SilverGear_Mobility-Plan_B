@@ -1,7 +1,7 @@
 <?php
 require_once 'common.php';
 require_once 'security.php';
-requireRole(['admin', 'ventas', 'mecanico']);
+requireRole(['admin', 'cliente', 'ventas', 'mecanico', 'limpieza', 'dropoff']);
 
 require_once '../vendor/autoload.php';
 \Stripe\Stripe::setApiKey(STRIPE_SECRET_KEY);
