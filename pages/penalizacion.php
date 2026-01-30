@@ -164,7 +164,7 @@ $penalizaciones = $stmt->fetchAll(PDO::FETCH_ASSOC);
                                         <td><?= $p['fechaRegistro'] ?></td>
                                         <td>
                                             <?php if ($p['estadoPenalizacion'] === 'PENDIENTE'): ?>
-                                                <button class="btn btn-sm btn-custom w-100" data-id="<?= $p['idPenalizacion'] ?>">
+                                                <button class="btn btn-sm btn-custom w-100 btn-pagar" data-id="<?= $p['idPenalizacion'] ?>">
                                                     Pagar
                                                 </button>
                                             <?php else: ?>
