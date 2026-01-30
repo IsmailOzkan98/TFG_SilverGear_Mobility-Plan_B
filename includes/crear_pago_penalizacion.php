@@ -48,8 +48,8 @@ $line_items = [[
 $session = \Stripe\Checkout\Session::create([
     'mode' => 'payment',
     'line_items' => $line_items,
-    'success_url' => 'http://localhost:8080/pages/penalizacion.php?success=1&id=' . $idPenalizacion,
-    'cancel_url' => 'http://localhost:8080/pages/penalizacion.php?cancel=1',
+    'success_url' => 'http://ismail.webserver.dtanase.com/pages/penalizacion.php?success=1&id=' . $idPenalizacion,
+    'cancel_url' => 'http://ismail.webserver.dtanase.com/pages/penalizacion.php?cancel=1',
 ]);
 
 echo json_encode(['id' => $session->id]);

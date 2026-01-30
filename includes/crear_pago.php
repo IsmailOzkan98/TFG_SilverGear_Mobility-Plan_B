@@ -1,7 +1,7 @@
 <?php
 require_once 'common.php';
 require_once 'security.php';
-requireRole(['admin', 'cliente', 'ventas', 'mecanico']);
+requireRole(['admin', 'cliente', 'ventas', 'mecanico', 'limpieza', 'dropoff']);
 
 require_once '../vendor/autoload.php';
 
@@ -42,8 +42,8 @@ foreach ($vehiculos as $v) {
 $session = \Stripe\Checkout\Session::create([
     'mode' => 'payment',
     'line_items' => $line_items,
-    'success_url' => 'http://localhost:8080/pages/cesta.php?success=1',
-    'cancel_url' => 'http://localhost:8080/pages/cesta.php?cancel=1',
+    'success_url' => 'http://ismail.webserver.dtanase.com/pages/cesta.php?success=1',
+    'cancel_url' => 'http://ismail.webserver.dtanase.com/pages/cesta.php?cancel=1',
 ]);
 
 echo json_encode(['id' => $session->id]);
