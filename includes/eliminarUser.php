@@ -6,10 +6,10 @@ $pdo = getPDO();
 
 function eliminarUsuario(int $idUsuario, PDO $pdo): string {
     try {
-        // Iniciar transacción
+        
         $pdo->beginTransaction();
 
-        // Guardar datos del usuario en histórico
+        //Guardar datos del usuario
         $stmt = $pdo->prepare("
             INSERT INTO Usuario_Eliminado (idUsuarioOriginal, dni, nombre, apellidos)
             SELECT idUsuario, dni, nombre, apellidos FROM Usuario WHERE idUsuario = ?
@@ -20,7 +20,7 @@ function eliminarUsuario(int $idUsuario, PDO $pdo): string {
             return "No se encontró usuario para archivar.";
         }
 
-        // Obtener o crear usuario fantasma
+        //obtener o crear usuario fantasma
         $stmt = $pdo->query("SELECT idUsuario FROM Usuario WHERE dni='00000000X'");
         $idFantasma = $stmt->fetchColumn();
 
@@ -38,17 +38,17 @@ function eliminarUsuario(int $idUsuario, PDO $pdo): string {
             }
         }
 
-        // Reasignar reservas
+        //Reasignar reservas
         $stmt = $pdo->prepare("UPDATE Reserva SET idUsuario = ? WHERE idUsuario = ?");
         $stmt->execute([$idFantasma, $idUsuario]);
         $reservas = $stmt->rowCount();
 
-        // Limpiar incidencias
+        //Limpiar incidencias
         $stmt = $pdo->prepare("UPDATE Incidencia SET idUsuario = NULL WHERE idUsuario = ?");
         $stmt->execute([$idUsuario]);
         $incidencias = $stmt->rowCount();
 
-        // Eliminar usuario
+        //Eliminar 
         $stmt = $pdo->prepare("DELETE FROM Usuario WHERE idUsuario = ?");
         $stmt->execute([$idUsuario]);
         if ($stmt->rowCount() === 0) {
@@ -56,7 +56,7 @@ function eliminarUsuario(int $idUsuario, PDO $pdo): string {
             return "No se pudo eliminar el usuario (posible restricción de FK).";
         }
 
-        // Confirmar transacción
+        //Confirmar
         $pdo->commit();
 
         return "Usuario eliminado correctamente. Reservas reasignadas: $reservas, incidencias desvinculadas: $incidencias.";
@@ -71,7 +71,7 @@ function eliminarUsuario(int $idUsuario, PDO $pdo): string {
 if ($_SESSION['usuario']['rol'] === 'admin' && isset($_GET['idUsuario'])) {
     $idUsuario = intval($_GET['idUsuario']);
 
-    // No permitir eliminar otros admins
+    //No permitir eliminar otros admins
     $stmt = $pdo->prepare("SELECT r.nombreRol FROM Usuario u JOIN Rol r ON u.idRol = r.idRol WHERE u.idUsuario = ?");
     $stmt->execute([$idUsuario]);
     $rol = $stmt->fetchColumn();
@@ -96,6 +96,6 @@ if ($_SESSION['usuario']['rol'] === 'cliente') {
     exit;
 }
 
-// REDIRECCIÓN POR DEFECTO
+
 header('Location: ../index.php');
 exit;
