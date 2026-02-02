@@ -224,7 +224,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             </div>
         </section>
     </div>
-    <div id="extra-container">
+    <!-- <div id="extra-container">
         <div class="divider"></div>
 
         <div id="multiCarousel" class="carousel slide" data-bs-ride="carousel">
@@ -291,7 +291,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 <span class="carousel-control-next-icon"></span>
             </button>
         </div>
-    </div>
+    </div> -->
 
 
     <!-- Footer -->

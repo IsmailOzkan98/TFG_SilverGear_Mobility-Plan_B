@@ -153,7 +153,7 @@ require_once 'includes/security.php';
         </div>
 
     </div>
-    <div id="extra-container">
+    <!-- <div id="extra-container">
         <div class="divider"></div>
 
         <div id="multiCarousel" class="carousel slide" data-bs-ride="carousel">
@@ -221,7 +221,7 @@ require_once 'includes/security.php';
             </button>
         </div>
     </div>
-    <div class="divider"></div>
+    <div class="divider"></div> -->
 
     <!-- Footer -->
     <footer class="pt-5 pb-3" style="background: var(--c-light); color: var(--c-dark);">
