@@ -1,12 +1,20 @@
 <?php
 require_once 'db.php';
+require_once __DIR__ . '/categorias.php';
 
 if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
 
+//Open WeatherMap
 require_once __DIR__ . "/../weather.php";
 $weather = getWeather();
+
+//Stripe
+require_once __DIR__ . '/../vendor/autoload.php';
+require_once __DIR__ . '/../apikeys.php';
+
+
 
 function getPDO()
 {
@@ -16,6 +24,15 @@ function getPDO()
     }
     return $pdo;
 }
+
+
+//favicon
+function imprimirFavicon(string $ruta = '../images/favicon/favicon.ico'): void
+{
+    echo '<link rel="icon" href="' . htmlspecialchars($ruta) . '" type="image/x-icon">';
+}
+
+
 
 //Validaciones
 function validarNombre($nombre)
@@ -38,20 +55,7 @@ function validarApellidos($apellidos)
 }
 
 
-// function validarDNI($dni)
-// {
-//     $dni = strtoupper(str_replace([' ', '-'], '', $dni));
 
-//     //DNI: 8 num mas letra
-//     if (preg_match("/^[0-9]{8}[A-Z]$/", $dni)) {
-//         return true; // 
-//     }
-//     //NIE: X/Y/Z + 7 u 8 nums y letra final
-//     elseif (preg_match("/^[XYZ][0-9]{7,8}[A-Z]$/", $dni)) {
-//         return true; // 
-//     }
-//     return "Formato de DNI/NIE no es correcto.";
-// }
 
 function validarDNI(PDO $pdo, $dni, $existeEnDB = true)
 {
@@ -126,18 +130,7 @@ function validarContrasenaRepetida($pass, $repetir)
     return true;
 }
 
-// function validarEmail($email) {
-//     if (empty($email)) {
-//         return "El email es obligatorio!";
-//     }
 
-
-//     if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
-//         return "Formato de email introducido no es valido";
-//     }
-
-//     return true; 
-// }
 
 // Validar email Con verificacion de si existe ya
 function validarEmail($email, PDO $pdo, $existeEnDB = true)
@@ -167,6 +160,8 @@ function actualizarDisponibilidadVehiculo(&$vehiculo)
     switch ($vehiculo->idEstado) {
         case 3: // IMPRO
         case 5: // BAJA
+        case 6: // VENDIDO
+        case 7: // ALQUILADO
             $vehiculo->disponibilidad = false;
             break;
         case 1: // LIMPIO
@@ -183,7 +178,7 @@ function actualizarDisponibilidadVehiculo(&$vehiculo)
 
 function registrarHistorialVehiculo(PDO $pdo, $matricula, $dniTrabajador, $accion, $descripcion = '')
 {
-    
+
     $stmt = $pdo->prepare("
         INSERT INTO Vehiculo_Historial (idVehiculo, dniTrabajador, accion, descripcion, fechaHora)
         SELECT idVehiculo, :dniTrabajador, :accion, :descripcion, NOW() 
@@ -202,7 +197,7 @@ function registrarHistorialVehiculo(PDO $pdo, $matricula, $dniTrabajador, $accio
 
 function cambiarEstadoVehiculo(PDO $pdo, &$vehiculo, $nuevoEstado, $dniTrabajador = null, $descripcion = '')
 {
-    
+
 
     $vehiculo->idEstado = $nuevoEstado;
     actualizarDisponibilidadVehiculo($vehiculo);
@@ -308,17 +303,51 @@ function volverSegunRol(?string $rol = null): string
         $rol = $_SESSION['usuario']['rol'] ?? null;
     }
 
-    // Array de roles y sus paginas
     $dashboards = [
-        'admin' => '../dashboard/dashboardAdmin.php',
-        'mecanico' => '../dashboard/dashboardMecanico.php',
+        'admin'     => '../dashboard/dashboardAdmin.php',
+        'ventas'    => '../dashboard/dashboardVentas.php',
+        'limpieza'  => '../dashboard/dashboardLimpieza.php',
+        'dropoff'   => '../dashboard/dashboardDropoff.php',
+        'mecanico'  => '../dashboard/dashboardMecanico.php',
+        'cliente'  => '../pages/miPerfil.php',
     ];
 
+    return $dashboards[$rol] ?? 'index.php';
+}
 
-    if (isset($dashboards[$rol])) {
-        return $dashboards[$rol];
+//redirige segun rol principalmente pensado para login.php
+function redirigirSegunRol(?string $rol = null): void
+{
+    if ($rol === null) {
+        $rol = $_SESSION['usuario']['rol'] ?? null;
     }
 
-    // Rol desconocido 
-    return 'index.php';
+    $dashboards = [
+        'admin'     => '../dashboard/dashboardAdmin.php',
+        'ventas'    => '../dashboard/dashboardVentas.php',
+        'limpieza'  => '../dashboard/dashboardLimpieza.php',
+        'dropoff'   => '../dashboard/dashboardDropoff.php',
+        'mecanico'  => '../dashboard/dashboardMecanico.php',
+        'cliente'   => 'tiendaComprar.php',
+    ];
+
+    header('Location: ' . ($dashboards[$rol] ?? '../index.php'));
+    exit;
 }
+
+    
+
+//comprobar el retraso de entrega
+function comprobarRetrasoEntrega(string $fechaFin): ?int
+{
+    $hoy = new DateTime('today');
+    $fin = new DateTime($fechaFin);
+
+    if ($hoy <= $fin) {
+        return null; 
+    }
+
+    return $fin->diff($hoy)->days; 
+}
+
+

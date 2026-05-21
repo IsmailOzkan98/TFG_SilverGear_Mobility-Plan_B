@@ -54,7 +54,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
 
         $vehiculo = new Vehiculo($datos, $pdo);
-        $resultado = $vehiculo->guardar();
+        $resultado = $vehiculo->guardarNuevo();
 
         if (!empty($resultado['errores'])) {
             $errores = $resultado['errores'];
@@ -77,6 +77,7 @@ $transmisiones = ['Manual', 'Automático'];
 <html lang="es">
 
 <head>
+    <?php imprimirFavicon(); ?>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dar de Alta Vehículo</title>

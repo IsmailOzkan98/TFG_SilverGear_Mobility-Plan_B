@@ -46,6 +46,18 @@ h1, h2, h3, h4, h5, h6,
     filter: drop-shadow(0 0 10px var(--c-accent)) brightness(1.2);
 }
 
+
+#header-container {
+    position: relative;
+    z-index: 1100; 
+}
+
+.navbar-toggler {
+    z-index: 1150;
+    pointer-events: auto;
+}
+
+
 /*----------------------------------------------------------------------------------*/
 
 /* Links Animados */
@@ -319,3 +331,23 @@ h1, h2, h3, h4, h5, h6,
 }
 
 
+/*-------------------------------------------------------------*/
+/* Vista en moviles */
+
+@media (max-width: 576px) {
+    .glass {
+        padding: 15px !important;
+    }
+
+    .table th,
+    .table td {
+        font-size: 0.85rem;
+        white-space: nowrap; 
+    }
+
+    .btn-custom {
+        font-size: 12px;
+        letter-spacing: 1px;
+        padding: 4px 6px;
+    }
+}

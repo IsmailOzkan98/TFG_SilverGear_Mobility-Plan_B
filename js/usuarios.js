@@ -1,23 +1,19 @@
-function confirmarEliminar(idUsuario, nombreUsuario) {
-    const texto = prompt(
-        `¿Eliminar al usuario ${nombreUsuario}?\n\n` +
-        "Escribe CONFIRMAR para continuar"
-    );
 
-    //proteccion de usuario especial
+function confirmarEliminar(idUsuario, nombreUsuario, dniUsuario) {
+    console.log("idUsuario:", idUsuario, "nombreUsuario:", nombreUsuario, "dniUsuario:", dniUsuario);
+
     if(dniUsuario === "00000000X") {
         alert("Este usuario no puede ser eliminado.");
         return;
     }
 
-    // Cancelar
-    if (texto === null) return;
-
+    const texto = prompt(`¿Eliminar al usuario ${nombreUsuario}?\n\nEscribe CONFIRMAR para continuar`);
+    
     if (texto !== "CONFIRMAR") {
         alert("Operación cancelada.");
         return;
     }
 
-    // Redirigir a eliminarUser.php con el id
-    window.location.href = "../includes/eliminarUser.php?idUsuario=" + idUsuario;
+    console.log("Redirigiendo a eliminarUser.php?idUsuario=" + idUsuario);
+    window.location.href = "../includes/eliminarUser.php?idUsuario=" + encodeURIComponent(idUsuario);
 }

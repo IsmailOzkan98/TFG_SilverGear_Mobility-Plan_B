@@ -8,12 +8,12 @@ $pdo = getPDO();
 $mensaje = '';
 $errores = [];
 
-// Obtener vh
+//Obtener vh
 $idVehiculo = $_GET['idVehiculo'] ?? null;
 
 if (!$idVehiculo) die("Vehículo no especificado.");
 
-// Cargar datos 
+//cargar datos 
 $stmt = $pdo->prepare("SELECT * FROM Vehiculo WHERE idVehiculo = :idVehiculo");
 $stmt->execute([':idVehiculo' => $idVehiculo]);
 $datosDB = $stmt->fetch(PDO::FETCH_ASSOC);
@@ -49,7 +49,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         cambiarEstadoVehiculo($pdo, $vehiculo, $idVentas, $vehiculo->manipuladoPor, $vehiculo->notasInternas);
 
-        // Subida de imagenes
+        //subida de las imagenes
         if (!empty($_FILES['imagenes']['name'][0])) {
             $carpetaDestino = '../images/Ventas/' . $matriculaRuta . '/';
             if (!is_dir($carpetaDestino)) mkdir($carpetaDestino, 0755, true);
@@ -92,6 +92,7 @@ $imagenes = $stmtImgs->fetchAll(PDO::FETCH_ASSOC);
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Poner a la venta</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <?php imprimirFavicon(); ?>
 </head>
 
 <body class="bg-light">

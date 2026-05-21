@@ -36,5 +36,6 @@ if ($idBaja) {
     cambiarEstadoVehiculo($pdo, $vehiculo, $idBaja, $dniTrabajador, 'Vehículo dado de baja');
 }
 
-header('Location: dashboardAdmin.php#vehiculos');
+header('Location: ' . volverSegunRol() . '#vehiculos');
 exit;
+

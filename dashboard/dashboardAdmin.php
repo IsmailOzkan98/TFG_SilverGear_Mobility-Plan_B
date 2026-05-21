@@ -4,6 +4,8 @@ require_once '../includes/security.php';
 requireRole(['admin']);
 
 $pdo = getPDO();
+$testeoPagina = false;
+$usuarioProtegido = "00000000X";
 
 // Empleados
 $filtroDNIEmpleado = $_GET['dniEmpleado'] ?? '';
@@ -58,14 +60,43 @@ $vehiculos = obtenerFlotaFiltrada($_GET);
 
 
 // Reservas
-$stmt = $pdo->query("SELECT r.*, u.nombre, u.apellidos, v.marca, v.modelo FROM Reserva r
-                     JOIN Usuario u ON r.idUsuario = u.idUsuario
-                     JOIN Vehiculo v ON r.idVehiculo = v.idVehiculo");
+$stmt = $pdo->query("
+    SELECT r.*, u.nombre, u.apellidos, u.dni,
+           v.marca, v.modelo, c.nombreCategoria
+    FROM Reserva r
+    JOIN Usuario u ON r.idUsuario = u.idUsuario
+    LEFT JOIN Vehiculo v ON r.idVehiculo = v.idVehiculo
+    LEFT JOIN Categoria c ON r.idCategoria = c.idCategoria
+    WHERE r.estado IN ('NO CUBIERTA','CUBIERTA')
+    ORDER BY r.fechaInicio DESC
+");
 $reservas = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
+
+
 // Reservas activas
-$stmt = $pdo->query("SELECT COUNT(*) as total FROM Reserva WHERE estadoReserva='Activa'");
+$stmt = $pdo->query("
+    SELECT COUNT(*) as total 
+    FROM Reserva 
+    WHERE estado IN ('NO CUBIERTA','CUBIERTA')
+");
 $activas = $stmt->fetch(PDO::FETCH_ASSOC)['total'];
+
+
+// Compras
+$stmt = $pdo->query("
+    SELECT c.idCompra, u.nombre, u.apellidos, u.dni, v.marca, v.modelo, v.matricula, c.precio, c.fechaCompra
+    FROM Compra c
+    JOIN Usuario u ON c.idUsuario = u.idUsuario
+    JOIN Vehiculo v ON c.idVehiculo = v.idVehiculo
+    ORDER BY c.fechaCompra DESC
+");
+$compras = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+// Categorias
+$stmt = $pdo->query("SELECT * FROM Categoria ORDER BY idCategoria ASC");
+$categoriasListado = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
 ?>
 
 <!DOCTYPE html>
@@ -77,10 +108,11 @@ $activas = $stmt->fetch(PDO::FETCH_ASSOC)['total'];
 
     <!-- Bootstrap 5 -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+
+    <?php imprimirFavicon(); ?>
 </head>
 
-<script src="../js/usuarios.js"></script>
-<script src="../js/vehiculos.js"></script>
+
 
 <body class="bg-light">
 
@@ -91,14 +123,19 @@ $activas = $stmt->fetch(PDO::FETCH_ASSOC)['total'];
 
             <div class="collapse navbar-collapse show">
                 <ul class="navbar-nav ms-auto mb-2 mb-lg-0">
+                    <li class="nav-item"><a class="nav-link" href="dashboardVentas.php">Panel Ventas</a></li>
+                    <li class="nav-item"><a class="nav-link" href="dashboardDropoff.php">Panel Dropoff</a></li>
+                    <li class="nav-item"><a class="nav-link" href="dashboardLimpieza.php">Panel Limpieza</a></li>
                     <li class="nav-item"><a class="nav-link" href="dashboardMecanico.php">Panel Mecanico</a></li>
                     <li class="nav-item"><a class="nav-link" href="../index.php">INDEX</a></li>
-                    <li class="nav-item"><a class="nav-link" href="#">ALQUILER</a></li>
+                    <li class="nav-item"><a class="nav-link" href="../pages/tiendaAlquiler.php">ALQUILER</a></li>
                     <li class="nav-item"><a class="nav-link" href="../pages/tiendaComprar.php">VENTAS</a></li>
+                    <li class="nav-item"><a class="nav-link" href="../pages/miPerfil.php">MI PERFIL</a></li>
                     <li class="nav-item"><a class="nav-link" href="#empleados">Empleados</a></li>
                     <li class="nav-item"><a class="nav-link" href="#clientes">Clientes</a></li>
                     <li class="nav-item"><a class="nav-link" href="#vehiculos">Vehículos</a></li>
                     <li class="nav-item"><a class="nav-link" href="#reservas">Reservas</a></li>
+                    <li class="nav-item"><a class="nav-link" href="#categorias">Categorías</a></li>
                     <li class="nav-item"><a class="nav-link text-danger" href="../includes/logout.php">Cerrar sesión</a></li>
                 </ul>
             </div>
@@ -194,7 +231,7 @@ $activas = $stmt->fetch(PDO::FETCH_ASSOC)['total'];
                             </div>
                         </form>
 
-                        <div class="table-responsive">
+                        <div class="table-responsive" style="max-height: 400px; overflow-y: auto;">
                             <table class="table table-striped align-middle">
                                 <thead class="table-dark">
                                     <tr>
@@ -213,9 +250,15 @@ $activas = $stmt->fetch(PDO::FETCH_ASSOC)['total'];
                                             <td><?= $row['email'] ?></td>
                                             <td><?= $row['nombreRol'] ?></td>
                                             <td>
-                                                <a href="editarUsuario.php?dni=<?= urlencode($row['dni']) ?>" class="btn btn-sm btn-secondary">Editar</a>
-                                                <button class="btn btn-sm btn-danger" onclick="confirmarEliminar('<?= $row['idUsuario'] ?>','<?= htmlspecialchars($row['nombre'] . ' ' . $row['apellidos']) ?>')">Eliminar</button>
+                                                <?php if ($row['nombreRol'] !== 'admin'): ?>
+                                                    <a href="editarUsuario.php?dni=<?= urlencode($row['dni']) ?>" class="btn btn-sm btn-secondary mb-2">Editar</a>
+                                                    <button class="btn btn-sm btn-danger mb-2"
+                                                        onclick="window.location.href='../pages/confirmarEliminarUsuario.php?idUsuario=<?= $row['idUsuario'] ?>'">
+                                                        Eliminar
+                                                    </button>
+                                                <?php endif; ?>
                                             </td>
+
                                         </tr>
                                     <?php endforeach; ?>
                                 </tbody>
@@ -252,7 +295,7 @@ $activas = $stmt->fetch(PDO::FETCH_ASSOC)['total'];
                             </div>
                         </form>
 
-                        <div class="table-responsive">
+                        <div class="table-responsive" style="max-height: 400px; overflow-y: auto;">
                             <table class="table table-striped align-middle">
 
                                 <thead class="table-dark">
@@ -269,9 +312,16 @@ $activas = $stmt->fetch(PDO::FETCH_ASSOC)['total'];
                                             <td><?= $row['dni'] ?></td>
                                             <td><?= $row['nombre'] . ' ' . $row['apellidos'] ?></td>
                                             <td><?= $row['email'] ?></td>
+                                            <?php $usuarioProtegido = "00000000X"; ?>
+
                                             <td>
-                                                <a href="editarUsuario.php?dni=<?= urlencode($row['dni']) ?>" class="btn btn-sm btn-secondary">Editar</a>
-                                                <button class="btn btn-sm btn-danger" onclick="confirmarEliminar('<?= $row['idUsuario'] ?>','<?= htmlspecialchars($row['nombre'] . ' ' . $row['apellidos']) ?>','<?= $row['dni'] ?>')">Eliminar</button>
+                                                <?php if ($row['dni'] !== $usuarioProtegido): ?>
+                                                    <a href="editarUsuario.php?dni=<?= urlencode($row['dni']) ?>" class="btn btn-sm btn-secondary mb-2">Editar</a>
+                                                    <button class="btn btn-sm btn-danger mb-2"
+                                                        onclick="window.location.href='../pages/confirmarEliminarUsuario.php?idUsuario=<?= $row['idUsuario'] ?>'">
+                                                        Eliminar
+                                                    </button>
+                                                <?php endif; ?>
                                             </td>
                                         </tr>
                                     <?php endforeach; ?>
@@ -288,9 +338,17 @@ $activas = $stmt->fetch(PDO::FETCH_ASSOC)['total'];
             <div class="card-body">
                 <div class="d-flex justify-content-between align-items-center mb-3">
                     <h5>Gestión de Vehículos</h5>
-                    <button class="btn btn-primary" onclick="location.href='darAltaVehiculo.php'">
-                        Añadir Vehículo
-                    </button>
+                    <div>
+                        <button class="btn btn-primary" onclick="location.href='entregarVehiculo.php'">
+                            Entregar Vehiculo
+                        </button>
+                        <button class="btn btn-primary" onclick="location.href='subirFotoVehiculo.php'">
+                            Subir Fotos
+                        </button>
+                        <button class="btn btn-primary" onclick="location.href='darAltaVehiculo.php'">
+                            Añadir Vehiculo
+                        </button>
+                    </div>
                 </div>
 
                 <div class="card mb-4" id="flota">
@@ -352,7 +410,7 @@ $activas = $stmt->fetch(PDO::FETCH_ASSOC)['total'];
 
                         </form>
 
-                        <div class="table-responsive">
+                        <div class="table-responsive" style="max-height: 400px; overflow-y: auto;">
                             <table class="table table-striped align-middle">
                                 <thead class="table-dark">
                                     <tr>
@@ -379,10 +437,26 @@ $activas = $stmt->fetch(PDO::FETCH_ASSOC)['total'];
                                             <td><?= $row['nombreCategoria'] ?></td>
                                             <td><?= $row['disponibilidad'] ? 'Disponible' : 'No disponible' ?></td>
                                             <td>
-                                                <a href="editarVehiculo.php?idVehiculo=<?= $row['idVehiculo'] ?>" class="btn btn-sm btn-secondary">Editar</a>
-                                                <a href="venderVehiculo.php?idVehiculo=<?= $row['idVehiculo'] ?>" class="btn btn-sm btn-secondary">Vender</a>
-                                                <a href="historialVehiculo.php?idVehiculo=<?= $row['idVehiculo'] ?>" class="btn btn-sm btn-secondary">Ver Historial</a>
-                                                <button class="btn btn-sm btn-danger" onclick="confirmarBaja('<?= $row['idVehiculo'] ?>')"> Dar de baja</button>
+                                                <?php if ($testeoPagina): ?>
+                                                    <a href="editarVehiculo.php?idVehiculo=<?= $row['idVehiculo'] ?>" class="btn btn-sm btn-secondary mb-2">Editar</a>
+                                                    <a href="venderVehiculo.php?idVehiculo=<?= $row['idVehiculo'] ?>" class="btn btn-sm btn-secondary mb-2">Vender</a>
+                                                    <a href="historialVehiculo.php?idVehiculo=<?= $row['idVehiculo'] ?>" class="btn btn-sm btn-secondary mb-2">Ver Historial</a>
+                                                    <button class="btn btn-sm btn-danger mb-2" onclick="confirmarBaja('<?= $row['idVehiculo'] ?>')">Dar de baja</button>
+                                                <?php else: ?>
+                                                    <?php if ($row['nombreEstado'] !== 'BAJA' && $row['nombreEstado'] !== 'VENDIDO'): ?>
+                                                        <a href="editarVehiculo.php?idVehiculo=<?= $row['idVehiculo'] ?>" class="btn btn-sm btn-secondary mb-2">Editar</a>
+                                                    <?php endif; ?>
+
+                                                    <?php if ($row['nombreEstado'] !== 'VENTAS' && $row['nombreEstado'] !== 'BAJA' && $row['nombreEstado'] !== 'VENDIDO'): ?>
+                                                        <a href="venderVehiculo.php?idVehiculo=<?= $row['idVehiculo'] ?>" class="btn btn-sm btn-secondary mb-2">Vender</a>
+                                                    <?php endif; ?>
+
+                                                    <?php if ($row['nombreEstado'] !== 'BAJA' && $row['nombreEstado'] !== 'VENDIDO'): ?>
+                                                        <button class="btn btn-sm btn-danger mb-2" onclick="confirmarBaja('<?= $row['idVehiculo'] ?>')">Dar de baja</button>
+                                                    <?php endif; ?>
+
+                                                    <a href="historialVehiculo.php?idVehiculo=<?= $row['idVehiculo'] ?>" class="btn btn-sm btn-secondary mb-2">Ver Historial</a>
+                                                <?php endif; ?>
                                             </td>
                                         </tr>
                                     <?php endforeach; ?>
@@ -399,48 +473,208 @@ $activas = $stmt->fetch(PDO::FETCH_ASSOC)['total'];
         <div class="card mb-4" id="reservas">
             <div class="card-body">
                 <div class="d-flex justify-content-between align-items-center mb-3">
-                    <h5>Gestión de Reservas</h5>
-                    <button class="btn btn-primary">Crear Reserva</button>
+                    <h5>Gestion de Reservas</h5>
+                    <div>
+                        <button class="btn btn-primary" onclick="location.href='crearReservaTech.php'">Crear Reserva</button>
+                        <button class="btn btn-primary" onclick="location.href='cerrarContrato.php'">Cerrar Contrato</button>
+                        <button class="btn btn-primary" onclick="location.href='cubrirReservas.php'">Cubrir Reservas</button>
+                    </div>
+                    
+
                 </div>
 
-                <div class="table-responsive">
+
+
+                <div class="card mb-4" id="flota">
+                    <div class="card-body">
+                        <h5 class="card-title mb-3">Consultar Reservas</h5>
+
+                        <form method="GET" class="row g-2 align-items-end mb-3">
+                            <div class="col-auto">
+                                <label class="form-label">Estado</label>
+                                <select name="estadoReserva" class="form-select">
+                                    <option value="">Todos</option>
+                                    <?php
+                                    $estadosReserva = ['NO CUBIERTA', 'CUBIERTA'];
+                                    foreach ($estadosReserva as $estado):
+                                    ?>
+                                        <option value="<?= $estado ?>" <?= (isset($_GET['estadoReserva']) && $_GET['estadoReserva'] === $estado) ? 'selected' : '' ?>>
+                                            <?= $estado ?>
+                                        </option>
+                                    <?php endforeach; ?>
+                                </select>
+                            </div>
+
+                            <div class="col-auto">
+                                <button class="btn btn-primary" type="submit" onclick="this.form.action='<?= $_SERVER['PHP_SELF'] ?>#reservas'">Filtrar</button>
+                            </div>
+
+                            <div class="col-auto">
+                                <a href="<?= $_SERVER['PHP_SELF'] ?>#reservas" class="btn btn-danger">Quitar filtro</a>
+                            </div>
+                        </form>
+
+                        <div class="table-responsive" style="max-height: 400px; overflow-y: auto;">
+                            <table class="table table-striped align-middle">
+                                <thead class="table-dark">
+                                    <tr>
+                                        <th>ID</th>
+                                        <th>DNI Cliente</th>
+                                        <th>Nombre Cliente</th>
+                                        <th>Vehiculo</th>
+                                        <th>Categoria</th>
+                                        <th>Inicio</th>
+                                        <th>Fin</th>
+                                        <th>Precio</th>
+                                        <th>Estado</th>
+                                        <th>Acciones</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <?php
+                                    $filtroEstado = $_GET['estadoReserva'] ?? '';
+                                    $reservasFiltradas = $filtroEstado ? array_filter($reservas, fn($r) => $r['estado'] === $filtroEstado) : $reservas;
+
+                                    foreach ($reservasFiltradas as $row): ?>
+                                        <tr>
+                                            <td><?= $row['idReserva'] ?></td>
+                                            <td><?= htmlspecialchars($row['dni']) ?></td>
+                                            <td><?= htmlspecialchars($row['nombre'] . ' ' . $row['apellidos']) ?></td>
+                                            <td><?= htmlspecialchars($row['marca'] . ' ' . $row['modelo']) ?></td>
+                                            <td><?= htmlspecialchars($row['nombreCategoria'] ?? 'Sin categoria') ?></td>
+                                            <td><?= $row['fechaInicio'] ?></td>
+                                            <td><?= $row['fechaFin'] ?></td>
+                                            <td><?= number_format($row['precioTotal'], 2) ?>€</td>
+                                            <td><?= $row['estado'] ?></td>
+                                            <td>
+                                                <a href="../pages/editarReserva.php?id=<?= $row['idReserva'] ?>" class="btn btn-sm btn-secondary mb-2">Editar</a>
+                                                <form method="POST" action="../includes/cancelarReserva.php" style="display:inline">
+                                                    <input type="hidden" name="idReserva" value="<?= $row['idReserva'] ?>">
+                                                    <button type="submit" class="btn btn-sm btn-danger mb-2">Cancelar</button>
+                                                </form>
+                                            </td>
+                                        </tr>
+                                    <?php endforeach; ?>
+
+                                    <?php if (empty($reservasFiltradas)): ?>
+                                        <tr>
+                                            <td colspan="9" class="text-center text-muted">No hay reservas con ese estado</td>
+                                        </tr>
+                                    <?php endif; ?>
+                                </tbody>
+                            </table>
+                        </div>
+
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+
+
+        <!-- Categorias -->
+        <div class="card mb-4" id="categorias">
+            <div class="card-body">
+
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h5>Gestion de Categorias</h5>
+
+                    <button class="btn btn-primary"
+                        onclick="location.href='crearCategoria.php'">
+                        Crear Nueva Categoria
+                    </button>
+                </div>
+
+                <div class="table-responsive" style="max-height: 400px; overflow-y: auto;">
                     <table class="table table-striped align-middle">
                         <thead class="table-dark">
                             <tr>
                                 <th>ID</th>
-                                <th>Cliente</th>
-                                <th>Vehículo</th>
-                                <th>Inicio</th>
-                                <th>Fin</th>
-                                <th>Precio</th>
-                                <th>Estado</th>
+                                <th>Nombre</th>
+                                <th>Descripción</th>
+                                <th>Precio Base</th>
                                 <th>Acciones</th>
                             </tr>
                         </thead>
+
                         <tbody>
-                            <?php foreach ($reservas as $row): ?>
+                            <?php foreach ($categoriasListado as $cat): ?>
                                 <tr>
-                                    <td><?= $row['idReserva'] ?></td>
-                                    <td><?= $row['nombre'] . ' ' . $row['apellidos'] ?></td>
-                                    <td><?= $row['marca'] . ' ' . $row['modelo'] ?></td>
-                                    <td><?= $row['fechaInicio'] ?></td>
-                                    <td><?= $row['fechaFin'] ?></td>
-                                    <td><?= $row['precioTotal'] ?>€</td>
-                                    <td><?= $row['estadoReserva'] ?></td>
+                                    <td><?= $cat['idCategoria'] ?></td>
+                                    <td><?= htmlspecialchars($cat['nombreCategoria']) ?></td>
+                                    <td><?= htmlspecialchars($cat['descripcion']) ?></td>
+                                    <td><?= number_format($cat['precioBase'], 2) ?>€</td>
+
                                     <td>
-                                        <button class="btn btn-sm btn-secondary">Editar</button>
-                                        <button class="btn btn-sm btn-danger">Cancelar</button>
+
+                                        <a href="editarCategoria.php?idCategoria=<?= $cat['idCategoria'] ?>"
+                                        class="btn btn-sm btn-secondary mb-2">
+                                            Editar
+                                        </a>
+
+                                        <!-- DESACTIVADO -->
+                                        <button class="btn btn-sm btn-danger mb-2"
+                                            disabled
+                                            style="cursor:not-allowed;"
+                                            title="Temporalmente desactivado porque está en desarrollo">
+                                            Eliminar
+                                        </button>
+
                                     </td>
                                 </tr>
                             <?php endforeach; ?>
                         </tbody>
                     </table>
                 </div>
+
             </div>
         </div>
 
+
+
+        <!-- Compras -->
+        <div class="card mb-4" id="compras">
+            <div class="card-body">
+                <h5 class="card-title mb-3">Compras Realizadas</h5>
+
+                <div class="table-responsive" style="max-height: 400px; overflow-y: auto;">
+                    <table class="table table-striped align-middle">
+                        <thead class="table-dark">
+                            <tr>
+                                <th>ID Compra</th>
+                                <th>Cliente</th>
+                                <th>DNI</th>
+                                <th>Vehiculo</th>
+                                <th>Matricula</th>
+                                <th>Precio</th>
+                                <th>Fecha</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <?php foreach ($compras as $compra): ?>
+                                <tr>
+                                    <td><?= $compra['idCompra'] ?></td>
+                                    <td><?= htmlspecialchars($compra['nombre'] . ' ' . $compra['apellidos']) ?></td>
+                                    <td><?= htmlspecialchars($compra['dni']) ?></td>
+                                    <td><?= htmlspecialchars($compra['marca'] . ' ' . $compra['modelo']) ?></td>
+                                    <td><?= htmlspecialchars($compra['matricula']) ?></td>
+                                    <td><?= number_format($compra['precio'], 2) ?>€</td>
+                                    <td><?= $compra['fechaCompra'] ?></td>
+                                </tr>
+                            <?php endforeach; ?>
+                        </tbody>
+                    </table>
+                </div>
+
+            </div>
+        </div>
+
+
     </div>
 
+    <script src="../js/usuarios.js"></script>
+    <script src="../js/vehiculos.js"></script>
 </body>
 
 </html>

@@ -8,24 +8,23 @@ $pdo = getPDO();
 $mensaje = '';
 $errores = [];
 
-// Obtener ID del vehículo
 $idVehiculo = $_GET['idVehiculo'] ?? null;
 if (!$idVehiculo) die("Vehículo no especificado.");
 
-// Cargar datos desde DB
+//cargar datos
 $stmt = $pdo->prepare("SELECT * FROM Vehiculo WHERE idVehiculo = :idVehiculo");
 $stmt->execute([':idVehiculo' => $idVehiculo]);
 $datosDB = $stmt->fetch(PDO::FETCH_ASSOC);
 if (!$datosDB) die("Vehículo no encontrado.");
 
-// Crear objeto Vehiculo
+
 $vehiculo = new Vehiculo($datosDB, $pdo);
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     try {
         $estadoAnterior = $vehiculo->idEstado;
 
-        // Actualizar datos 
+        //Actualizar 
         $vehiculo->matricula = strtoupper(trim($_POST['matricula']));
         $vehiculo->marca = strtoupper(trim($_POST['marca']));
         $vehiculo->modelo = strtoupper(trim($_POST['modelo']));
@@ -46,7 +45,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $vehiculo->notasInternas = $_POST['notasInternas'];
         $vehiculo->manipuladoPor = $_SESSION['usuario']['dni'] ?? null;
 
-        // Validaciones
         if ($vehiculo->tipoPropulsion === 'Eléctrico' && $vehiculo->transmision !== 'Automático') {
             throw new Exception("Los vehículos eléctricos solo pueden ser Automáticos.");
         }
@@ -55,7 +53,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             throw new Exception("Número de plazas debe estar entre 2 y 9.");
         }
 
-        // Cambios de estado
         if ($estadoAnterior != $vehiculo->idEstado) {
             cambiarEstadoVehiculo($pdo, $vehiculo, $vehiculo->idEstado, $vehiculo->manipuladoPor);
         } else {
@@ -75,7 +72,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             "Se actualizaron datos generales"
         );
 
-        // Actualizar
+        //Actualizar
         $datosDB = [
             'matricula' => $vehiculo->matricula,
             'marca' => $vehiculo->marca,
@@ -105,7 +102,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 }
 
 
-// Datos para selects
+//Datos selects
 $rol = getUserRole();
 $estadosPermitidos = [];
 
@@ -139,6 +136,7 @@ $transmisiones = ['Manual', 'Automático'];
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Editar Vehículo</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <?php imprimirFavicon(); ?>
 </head>
 
 <body class="bg-light">
