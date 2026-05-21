@@ -55,20 +55,7 @@ function validarApellidos($apellidos)
 }
 
 
-// function validarDNI($dni)
-// {
-//     $dni = strtoupper(str_replace([' ', '-'], '', $dni));
 
-//     //DNI: 8 num mas letra
-//     if (preg_match("/^[0-9]{8}[A-Z]$/", $dni)) {
-//         return true; // 
-//     }
-//     //NIE: X/Y/Z + 7 u 8 nums y letra final
-//     elseif (preg_match("/^[XYZ][0-9]{7,8}[A-Z]$/", $dni)) {
-//         return true; // 
-//     }
-//     return "Formato de DNI/NIE no es correcto.";
-// }
 
 function validarDNI(PDO $pdo, $dni, $existeEnDB = true)
 {
@@ -143,18 +130,7 @@ function validarContrasenaRepetida($pass, $repetir)
     return true;
 }
 
-// function validarEmail($email) {
-//     if (empty($email)) {
-//         return "El email es obligatorio!";
-//     }
 
-
-//     if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
-//         return "Formato de email introducido no es valido";
-//     }
-
-//     return true; 
-// }
 
 // Validar email Con verificacion de si existe ya
 function validarEmail($email, PDO $pdo, $existeEnDB = true)
@@ -360,58 +336,6 @@ function redirigirSegunRol(?string $rol = null): void
 }
 
     
-//obtener precio de la categoria
-function obtenerCategoria($idCategoria, $pdo)
-{
-    $stmt = $pdo->prepare("SELECT * FROM Categoria WHERE idCategoria = ?");
-    $stmt->execute([$idCategoria]);
-    return $stmt->fetch(PDO::FETCH_ASSOC);
-}
-
-//decuento por longitud de alquiler
-function obtenerDescuentoPorDias($categoria, $dias)
-{
-    if ($dias >= 20) return $categoria['descuentoDia20_mas'];
-    if ($dias >= 11) return $categoria['descuentoDia11_19'];
-    if ($dias >= 7)  return $categoria['descuentoDia7_10'];
-    if ($dias >= 4)  return $categoria['descuentoDia4_6'];
-    return $categoria['descuentoDia1_3'];
-}
-
-
-//precio diario segun categoria, seguro, carnet joven y duracion
-function calcularPrecioAlquiler($idCategoria, $dias, $aplicarSeguro = false, $recargoCarnetJoven = false, $pdo)
-{
-    $categoria = obtenerCategoria($idCategoria, $pdo);
-    if (!$categoria) return null;
-
-    $precio = $categoria['precioBase'];
-
-    // Aplicar incrementos
-    if ($aplicarSeguro) $precio += $categoria['incrementoSeguro'];
-    if ($recargoCarnetJoven) $precio += $categoria['recargoCarnetJoven'];
-
-    // Aplicar descuento segun dias
-    $descuento = obtenerDescuentoPorDias($categoria, $dias);
-    $precioFinal = $precio * (1 - $descuento / 100);
-
-    return round($precioFinal, 2);
-}
-
-//precio total de la reserva
-function calcularPrecioTotal($idCategoria, $dias, $aplicarSeguro = false, $recargoCarnetJoven = false, $pdo)
-{
-    $precioDia = calcularPrecioAlquiler($idCategoria, $dias, $aplicarSeguro, $recargoCarnetJoven, $pdo);
-    return $precioDia * $dias;
-}
-
-//conseguir nombre de la categoria
-function getNombreCategoria($idCategoria) {
-    global $pdo;
-    $stmt = $pdo->prepare("SELECT nombreCategoria FROM Categoria WHERE idCategoria = ?");
-    $stmt->execute([$idCategoria]);
-    return $stmt->fetchColumn();
-}
 
 //comprobar el retraso de entrega
 function comprobarRetrasoEntrega(string $fechaFin): ?int

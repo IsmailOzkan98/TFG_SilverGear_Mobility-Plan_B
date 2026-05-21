@@ -74,9 +74,6 @@ $reservas = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
 
 
-
-
-
 // Reservas activas
 $stmt = $pdo->query("
     SELECT COUNT(*) as total 
@@ -95,6 +92,10 @@ $stmt = $pdo->query("
     ORDER BY c.fechaCompra DESC
 ");
 $compras = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+// Categorias
+$stmt = $pdo->query("SELECT * FROM Categoria ORDER BY idCategoria ASC");
+$categoriasListado = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
 ?>
 
@@ -571,7 +572,63 @@ $compras = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
 
 
+        <!-- Categorias -->
+        <div class="card mb-4" id="categorias">
+            <div class="card-body">
 
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h5>Gestion de Categorias</h5>
+
+                    <button class="btn btn-primary"
+                        onclick="location.href='crearCategoria.php'">
+                        Crear Nueva Categoría
+                    </button>
+                </div>
+
+                <div class="table-responsive" style="max-height: 400px; overflow-y: auto;">
+                    <table class="table table-striped align-middle">
+                        <thead class="table-dark">
+                            <tr>
+                                <th>ID</th>
+                                <th>Nombre</th>
+                                <th>Descripción</th>
+                                <th>Precio Base</th>
+                                <th>Acciones</th>
+                            </tr>
+                        </thead>
+
+                        <tbody>
+                            <?php foreach ($categoriasListado as $cat): ?>
+                                <tr>
+                                    <td><?= $cat['idCategoria'] ?></td>
+                                    <td><?= htmlspecialchars($cat['nombreCategoria']) ?></td>
+                                    <td><?= htmlspecialchars($cat['descripcion']) ?></td>
+                                    <td><?= number_format($cat['precioBase'], 2) ?>€</td>
+
+                                    <td>
+
+                                        <a href="editarCategoria.php?idCategoria=<?= $cat['idCategoria'] ?>"
+                                        class="btn btn-sm btn-secondary mb-2">
+                                            Editar
+                                        </a>
+
+                                        <!-- DESACTIVADO -->
+                                        <button class="btn btn-sm btn-danger mb-2"
+                                            disabled
+                                            style="cursor:not-allowed;"
+                                            title="Temporalmente desactivado porque está en desarrollo">
+                                            Eliminar
+                                        </button>
+
+                                    </td>
+                                </tr>
+                            <?php endforeach; ?>
+                        </tbody>
+                    </table>
+                </div>
+
+            </div>
+        </div>
 
 
 
