@@ -1,0 +1,54 @@
+
+css/style, workerspace
+dashboard/cerrarContrato, crearReservaTech, cubrirReservas, darAltaVehiculo, darBajaVehiculo, dashboardAdmin, dashboardDropoff, dashboardLimpieza, dashboardMecanico, dashboardVentas, editarUsuario, editarVehiculo, entregarVehiculo, historialVehiculo, subirFotoVehiculo, venderVehiculo.
+images/
+includes/cancelarReserva, common, controlFlota, crear_pago_penalizacion, crear_pago, crear_reserva, db, dbOnline, eliminarUser, logout, security, usuario, Vehiculo.
+js/
+pages/articuloAlquiler, articuloCompra, cesta, confirmarEliminarUsuario, editarPerfil, editarReserva, login, miPerfil, penalizacion, recuperarPass, registrar, tiendaAlquiler, tiendaComprar.
+sql/
+index.php
+weather.php
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
