@@ -135,6 +135,7 @@ $categoriasListado = $stmt->fetchAll(PDO::FETCH_ASSOC);
                     <li class="nav-item"><a class="nav-link" href="#clientes">Clientes</a></li>
                     <li class="nav-item"><a class="nav-link" href="#vehiculos">Vehículos</a></li>
                     <li class="nav-item"><a class="nav-link" href="#reservas">Reservas</a></li>
+                    <li class="nav-item"><a class="nav-link" href="#categorias">Categorías</a></li>
                     <li class="nav-item"><a class="nav-link text-danger" href="../includes/logout.php">Cerrar sesión</a></li>
                 </ul>
             </div>
@@ -581,7 +582,7 @@ $categoriasListado = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
                     <button class="btn btn-primary"
                         onclick="location.href='crearCategoria.php'">
-                        Crear Nueva Categoría
+                        Crear Nueva Categoria
                     </button>
                 </div>
 

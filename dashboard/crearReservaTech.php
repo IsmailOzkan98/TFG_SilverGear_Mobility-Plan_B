@@ -8,10 +8,10 @@ $pdo = getPDO();
 $mensaje = '';
 $errores = [];
 
-// Traer categorías
+// Consulta para traer categorias
 $categorias = $pdo->query("SELECT idCategoria, nombreCategoria, precioBase, incrementoSeguro, recargoCarnetJoven FROM Categoria")->fetchAll();
 
-// Manejo POST
+// POST
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $dniCliente = trim($_POST['dniCliente']);
     $stmt = $pdo->prepare("SELECT idUsuario, fechaCarnet FROM Usuario WHERE dni = :dni LIMIT 1");
