@@ -46,7 +46,9 @@ class Usuario
         $this->idRol = 2; // rol cliente por defecto
 
         // Contraseña
-        $this->setContrasena($datos['contrasena'] ?? '', $datos['repetirContrasena'] ?? '');
+        if (isset($datos['contrasena'], $datos['repetirContrasena'])) {
+            $this->setContrasena($datos['contrasena'], $datos['repetirContrasena']);
+        }
     }
 
     private function setContrasena($pass, $repetir)
@@ -62,21 +64,21 @@ class Usuario
         $this->contrasenaHash = hashContrasena($pass);
     }
 
-    public function validar()
+    public function validar($dniActual = null)
     {
         $errores = [];
 
         $campos = [
             'nombre' => validarNombre($this->nombre),
             'apellidos' => validarApellidos($this->apellidos),
-            'dni' => validarDNI($this->pdo, $this->dni),
+            'dni' => validarDNI($this->pdo, $this->dni, true, $dniActual),
             'fechaNacimiento' => validarFecha($this->fechaNacimiento),
             'direccion' => validarTexto($this->direccion, 'Dirección'),
             'ciudad' => validarTexto($this->ciudad, 'Ciudad'),
             'pais' => validarTexto($this->pais, 'País'),
             'codigoPostal' => validarCodigoPostal($this->codigoPostal),
             'telefono' => validarTelefono($this->telefono),
-            'email' => validarEmail($this->email, $this->pdo),
+            'email' => validarEmail($this->email, $this->pdo, true, $dniActual),
             'fechaCarnet' => validarFecha($this->fechaCarnet),
         ];
 
@@ -93,6 +95,8 @@ class Usuario
     {
         $errores = $this->validar();
         if (!empty($errores)) return ['errores' => $errores];
+
+        $telefono = str_replace([' ', '-'], '', $this->telefono); //limpia guiones y espacios para todos numeros tengan mismo estilo al guardarse.
 
         try {
             $stmt = $this->pdo->prepare("
@@ -112,7 +116,7 @@ class Usuario
                 ':ciudad' => $this->ciudad,
                 ':pais' => $this->pais,
                 ':codigoPostal' => $this->codigoPostal,
-                ':telefono' => $this->telefono,
+                ':telefono' => $telefono,
                 ':email' => $this->email,
                 ':fechaCarnet' => $this->fechaCarnet,
                 ':contrasena' => $this->contrasenaHash,
@@ -125,6 +129,52 @@ class Usuario
                 if (str_contains($e->getMessage(), 'dni')) return ['errores' => ['dni' => 'DNI ya registrado']];
                 if (str_contains($e->getMessage(), 'email')) return ['errores' => ['email' => 'Email ya registrado']];
             }
+            return ['errores' => ['general' => $e->getMessage()]];
+        }
+    }
+
+    public function actualizar(){
+        $errores = $this->validar($this->dni);
+        if (!empty($errores)) return ['errores' => $errores];
+
+        $telefono = str_replace([' ', '-'], '', $this->telefono); //limpia guiones y espacios para todos numeros tengan mismo estilo al guardarse.
+
+        try {
+            $stmt = $this->pdo->prepare("
+                UPDATE Usuario SET
+                    nombre = :nombre,
+                    apellidos = :apellidos,
+                    fechaNacimiento = :fechaNacimiento,
+                    sexo = :sexo,
+                    direccion = :direccion,
+                    ciudad = :ciudad,
+                    pais = :pais,
+                    codigoPostal = :codigoPostal,
+                    telefono = :telefono,
+                    email = :email,
+                    fechaCarnet = :fechaCarnet,
+                    idRol = :idRol
+                WHERE dni = :dni
+            ");
+
+            $stmt->execute([
+                ':nombre' => $this->nombre,
+                ':apellidos' => $this->apellidos,
+                ':fechaNacimiento' => $this->fechaNacimiento,
+                ':sexo' => $this->sexo,
+                ':direccion' => $this->direccion,
+                ':ciudad' => $this->ciudad,
+                ':pais' => $this->pais,
+                ':codigoPostal' => $this->codigoPostal,
+                ':telefono' => $telefono,
+                ':email' => $this->email,
+                ':fechaCarnet' => $this->fechaCarnet,
+                ':idRol' => $this->idRol,
+                ':dni' => $this->dni
+            ]);
+
+            return ['exito' => true];
+        } catch (PDOException $e) {
             return ['errores' => ['general' => $e->getMessage()]];
         }
     }

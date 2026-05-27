@@ -1,6 +1,8 @@
 <?php
 require_once '../includes/common.php';
 require_once '../includes/security.php';
+require_once '../includes/usuario.php';
+
 requireRole(['admin', 'cliente', 'ventas', 'mecanico', 'limpieza', 'dropoff']);
 
 $pdo = getPDO();
@@ -11,60 +13,44 @@ if (!isset($_GET['dni'])) {
 
 $dni = $_GET['dni'];
 
+//Consulta para obtener datos de usuario
 $stmt = $pdo->prepare("SELECT * FROM Usuario WHERE dni = :dni");
 $stmt->execute([':dni' => $dni]);
 $usuarioDB = $stmt->fetch(PDO::FETCH_ASSOC);
-
-$stmtRoles = $pdo->query("SELECT idRol, nombreRol FROM Rol ORDER BY nombreRol");
-$roles = $stmtRoles->fetchAll(PDO::FETCH_ASSOC);
 
 if (!$usuarioDB) {
     die('Usuario no encontrado');
 }
 
-$errores = [];
+//manejo de errores
+$errores = $_SESSION['errores_editar'] ?? [];
+$old = $_SESSION['old_input'] ?? [];
+
+unset($_SESSION['errores_editar'], $_SESSION['old_input']);
+
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    try {
-        $stmt = $pdo->prepare("
-            UPDATE Usuario SET
-                nombre = :nombre,
-                apellidos = :apellidos,
-                fechaNacimiento = :fechaNacimiento,
-                sexo = :sexo,
-                direccion = :direccion,
-                ciudad = :ciudad,
-                pais = :pais,
-                codigoPostal = :codigoPostal,
-                telefono = :telefono,
-                email = :email,
-                fechaCarnet = :fechaCarnet,
-                idRol = :idRol
-            WHERE dni = :dni
-        ");
 
-        $stmt->execute([
-            ':nombre' => $_POST['nombre'],
-            ':apellidos' => $_POST['apellidos'],
-            ':fechaNacimiento' => $_POST['fechaNacimiento'],
-            ':sexo' => $_POST['sexo'],
-            ':direccion' => $_POST['direccion'],
-            ':ciudad' => $_POST['ciudad'],
-            ':pais' => $_POST['pais'],
-            ':codigoPostal' => $_POST['codigoPostal'],
-            ':telefono' => $_POST['telefono'],
-            ':email' => $_POST['email'],
-            ':fechaCarnet' => $_POST['fechaCarnet'],
-            ':idRol' => $_POST['idRol'],
-            ':dni' => $dni
-        ]);
+    $usuario = new Usuario($_POST, $pdo);
+    $usuario->dni = $dni;
 
-        $_SESSION['mensaje'] = 'Usuario actualizado correctamente';
-        header('Location: miPerfil.php');
+    $resultado = $usuario->actualizar();
+
+    if (isset($resultado['exito'])) {
+
+        $_SESSION['mensaje'] = 'Usuario ha sido actualizado correctamente';
+
+        unset($_SESSION['errores_editar']);
+
+        header("Location: /pages/editarPerfil.php?dni=" . urlencode($dni));
         exit;
-    } catch (PDOException $e) {
-        $errores['general'] = $e->getMessage();
     }
+
+    $_SESSION['errores_editar'] = $resultado['errores'];
+    $_SESSION['old_input'] = $_POST;
+
+    header("Location: /pages/editarPerfil.php?dni=" . urlencode($dni));
+    exit;
 }
 ?>
 
@@ -210,27 +196,55 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         <div class="col-md-6">
                             <label class="form-label">DNI</label>
                             <input type="text" class="form-control"
-                                value="<?= htmlspecialchars($usuarioDB['dni']) ?>" readonly>
+                                value="<?= htmlspecialchars($old['dni'] ?? $usuarioDB['dni']) ?>" readonly>
+
+                            <?php if (!empty($errores['dni'])): ?>
+                                <span class="error" style="color:red">
+                                    <?= htmlspecialchars($errores['dni']) ?>
+                                </span>
+                            <?php endif; ?>
                         </div>
 
+                        <!-- Nombre -->
                         <div class="col-md-6">
                             <label class="form-label">Nombre</label>
                             <input type="text" name="nombre" class="form-control"
-                                value="<?= htmlspecialchars($usuarioDB['nombre']) ?>" required>
+                                value="<?= htmlspecialchars($old['nombre'] ?? $usuarioDB['nombre']) ?>" required>
+
+                            <?php if (!empty($errores['nombre'])): ?>
+                                <span class="error" style="color:red">
+                                    <?= htmlspecialchars($errores['nombre']) ?>
+                                </span>
+                            <?php endif; ?>
                         </div>
 
+                        <!-- Apellidos -->
                         <div class="col-md-6">
                             <label class="form-label">Apellidos</label>
                             <input type="text" name="apellidos" class="form-control"
-                                value="<?= htmlspecialchars($usuarioDB['apellidos']) ?>" required>
+                                value="<?= htmlspecialchars($old['apellidos'] ?? $usuarioDB['apellidos']) ?>" required>
+
+                            <?php if (!empty($errores['apellidos'])): ?>
+                                <span class="error" style="color:red">
+                                    <?= htmlspecialchars($errores['apellidos']) ?>
+                                </span>
+                            <?php endif; ?>
                         </div>
 
+                        <!-- Fecha nacimiento -->
                         <div class="col-md-6">
                             <label class="form-label">Fecha nacimiento</label>
                             <input type="date" name="fechaNacimiento" class="form-control"
-                                value="<?= htmlspecialchars($usuarioDB['fechaNacimiento']) ?>" required>
+                                value="<?= htmlspecialchars($old['fechaNacimiento'] ?? $usuarioDB['fechaNacimiento']) ?>" required>
+
+                            <?php if (!empty($errores['fechaNacimiento'])): ?>
+                                <span class="error" style="color:red">
+                                    <?= htmlspecialchars($errores['fechaNacimiento']) ?>
+                                </span>
+                            <?php endif; ?>
                         </div>
 
+                        <!-- Sexo -->
                         <div class="col-md-6">
                             <label class="form-label">Sexo</label>
                             <select name="sexo" class="form-control">
@@ -243,48 +257,98 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                             </select>
                         </div>
 
+                        <!-- Telefono -->
                         <div class="col-md-6">
-                            <label class="form-label">Teléfono</label>
+                            <label class="form-label">Telefono</label>
                             <input type="text" name="telefono" class="form-control"
-                                value="<?= htmlspecialchars($usuarioDB['telefono']) ?>" required>
+                                value="<?= htmlspecialchars($old['telefono'] ?? $usuarioDB['telefono']) ?>" required>
+
+                            <?php if (!empty($errores['telefono'])): ?>
+                                <span class="error" style="color:red">
+                                    <?= htmlspecialchars($errores['telefono']) ?>
+                                </span>
+                            <?php endif; ?>
                         </div>
 
+                        <!-- Email -->
                         <div class="col-md-6">
                             <label class="form-label">Email</label>
                             <input type="email" name="email" class="form-control"
-                                value="<?= htmlspecialchars($usuarioDB['email']) ?>" required>
+                                value="<?= htmlspecialchars($old['email'] ?? $usuarioDB['email']) ?>" required>
+
+                            <?php if (!empty($errores['email'])): ?>
+                                <span class="error" style="color:red">
+                                    <?= htmlspecialchars($errores['email']) ?>
+                                </span>
+                            <?php endif; ?>
                         </div>
 
+                        <!-- Direccion -->
                         <div class="col-md-6">
-                            <label class="form-label">Dirección</label>
+                            <label class="form-label">Direccion</label>
                             <input type="text" name="direccion" class="form-control"
-                                value="<?= htmlspecialchars($usuarioDB['direccion']) ?>" required>
+                                value="<?= htmlspecialchars($old['direccion'] ?? $usuarioDB['direccion']) ?>" required>
+
+                            <?php if (!empty($errores['direccion'])): ?>
+                                <span class="error" style="color:red">
+                                    <?= htmlspecialchars($errores['direccion']) ?>
+                                </span>
+                            <?php endif; ?>
                         </div>
 
+                        <!-- Ciudad -->
                         <div class="col-md-4">
                             <label class="form-label">Ciudad</label>
                             <input type="text" name="ciudad" class="form-control"
-                                value="<?= htmlspecialchars($usuarioDB['ciudad']) ?>" required>
+                                value="<?= htmlspecialchars($old['ciudad'] ?? $usuarioDB['ciudad']) ?>" required>
+
+                            <?php if (!empty($errores['ciudad'])): ?>
+                                <span class="error" style="color:red">
+                                    <?= htmlspecialchars($errores['ciudad']) ?>
+                                </span>
+                            <?php endif; ?>
                         </div>
 
+                        <!-- Pais -->
                         <div class="col-md-4">
-                            <label class="form-label">País</label>
+                            <label class="form-label">Pais</label>
                             <input type="text" name="pais" class="form-control"
-                                value="<?= htmlspecialchars($usuarioDB['pais']) ?>" required>
+                                value="<?= htmlspecialchars($old['pais'] ?? $usuarioDB['pais']) ?>" required>
+
+                            <?php if (!empty($errores['pais'])): ?>
+                                <span class="error" style="color:red">
+                                    <?= htmlspecialchars($errores['pais']) ?>
+                                </span>
+                            <?php endif; ?>
                         </div>
 
+                        <!-- Codigo Pòstal -->
                         <div class="col-md-4">
-                            <label class="form-label">Código postal</label>
+                            <label class="form-label">Codigo postal</label>
                             <input type="text" name="codigoPostal" class="form-control"
-                                value="<?= htmlspecialchars($usuarioDB['codigoPostal']) ?>">
+                                value="<?= htmlspecialchars($old['codigoPostal'] ?? $usuarioDB['codigoPostal']) ?>">
+
+                            <?php if (!empty($errores['codigoPostal'])): ?>
+                                <span class="error" style="color:red">
+                                    <?= htmlspecialchars($errores['codigoPostal']) ?>
+                                </span>
+                            <?php endif; ?>
                         </div>
 
+                        <!-- Fecha carnet -->
                         <div class="col-md-6">
                             <label class="form-label">Fecha carnet</label>
                             <input type="date" name="fechaCarnet" class="form-control"
-                                value="<?= htmlspecialchars($usuarioDB['fechaCarnet']) ?>" required>
+                                value="<?= htmlspecialchars($old['fechaCarnet'] ?? $usuarioDB['fechaCarnet']) ?>" required>
+
+                            <?php if (!empty($errores['fechaCarnet'])): ?>
+                                <span class="error" style="color:red">
+                                    <?= htmlspecialchars($errores['fechaCarnet']) ?>
+                                </span>
+                            <?php endif; ?>
                         </div>
 
+                        <!-- botones -->
                         <div class="col-12 text-center mt-4">
                             <a href="miPerfil.php" class="btn btn-custom">Volver</a>
                             <button type="submit" class="btn btn-custom">Guardar cambios</button>

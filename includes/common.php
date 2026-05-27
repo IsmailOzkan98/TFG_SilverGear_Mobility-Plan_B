@@ -57,7 +57,7 @@ function validarApellidos($apellidos)
 
 
 
-function validarDNI(PDO $pdo, $dni, $existeEnDB = true)
+function validarDNI(PDO $pdo, $dni, $existeEnDB = true, $dniActual = null)
 {
     $dni = strtoupper(str_replace([' ', '-'], '', $dni));
 
@@ -66,10 +66,29 @@ function validarDNI(PDO $pdo, $dni, $existeEnDB = true)
         return "Formato de DNI o NIE introducido no es adecuado";
     }
 
+
     // Comprobar su existencia en bd
     if ($existeEnDB) {
-        $stmt = $pdo->prepare("SELECT COUNT(*) FROM Usuario WHERE dni = :dni");
-        $stmt->execute([':dni' => $dni]);
+
+        $resultado = "SELECT COUNT(*) FROM Usuario WHERE dni = :dni";
+
+
+        //exclulle dni actual de la busqueda
+        if ($dniActual !== null) {
+            $resultado .= " AND dni != :dniActual";
+        }
+
+        $stmt = $pdo->prepare($resultado);
+
+        $params = [':dni' => $dni];
+
+        if ($dniActual !== null) {
+            $params[':dniActual'] = $dniActual;
+        }
+
+        $stmt->execute($params);
+
+
         if ($stmt->fetchColumn() > 0) {
             return "El DNI/NIE ya esta registrado!";
         }
@@ -104,8 +123,20 @@ function validarCodigoPostal($cp)
 function validarTelefono($telefono)
 {
     if (empty($telefono)) return "El teléfono es obligatorio!";
-    $numero = preg_replace("/\D/", "", $telefono); // quitar todo lo que no sea un numero
-    if (strlen($numero) < 9) return "Telefono es invalido.";
+
+
+
+    if (!preg_match('/^[0-9\s-]+$/', $telefono)) { // Acepta 9 digitos seguidos, o mezclarlo con espacio o guion
+        return "Telefono introducido contiene caracteres invalidos";
+    }
+
+    $numero = str_replace([' ', '-'], '', $telefono); // quita espacios y guiones
+
+    if (!preg_match('/^\d{9}$/', $numero)) { //revisa que telefono tenga exactamente 9 numeros
+        return "Telefono introducido no contiene 9 numeros";
+    }
+
+
     return true;
 }
 
@@ -133,7 +164,7 @@ function validarContrasenaRepetida($pass, $repetir)
 
 
 // Validar email Con verificacion de si existe ya
-function validarEmail($email, PDO $pdo, $existeEnDB = true)
+function validarEmail($email, PDO $pdo, $existeEnDB = true, $dniActual = null)
 {
     if (empty($email)) return "El email es obligatorio!";
 
@@ -141,10 +172,21 @@ function validarEmail($email, PDO $pdo, $existeEnDB = true)
         return "Formato de email introducido no es valido";
     }
 
-    // Comprobar si ya existe
+
+    // Comprobar si ya existe mediante dni
     if ($existeEnDB) {
-        $stmt = $pdo->prepare("SELECT COUNT(*) FROM Usuario WHERE email = :email");
-        $stmt->execute([':email' => $email]);
+
+        $resultado = "SELECT COUNT(*) FROM Usuario WHERE email = :email"; //consulta para conseguir datos del usuario al que pertenece ese email
+        $params = [':email' => $email];
+
+        if ($dniActual !== null) {
+            $resultado .= " AND dni != :dni";
+            $params[':dni'] = $dniActual;
+        }
+
+        $stmt = $pdo->prepare($resultado);
+        $stmt->execute($params);
+
         if ($stmt->fetchColumn() > 0) {
             return "El email ya esta registrado.";
         }
@@ -335,7 +377,7 @@ function redirigirSegunRol(?string $rol = null): void
     exit;
 }
 
-    
+
 
 //comprobar el retraso de entrega
 function comprobarRetrasoEntrega(string $fechaFin): ?int
@@ -344,10 +386,8 @@ function comprobarRetrasoEntrega(string $fechaFin): ?int
     $fin = new DateTime($fechaFin);
 
     if ($hoy <= $fin) {
-        return null; 
+        return null;
     }
 
-    return $fin->diff($hoy)->days; 
+    return $fin->diff($hoy)->days;
 }
-
-
