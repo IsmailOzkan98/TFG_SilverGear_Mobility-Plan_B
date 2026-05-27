@@ -106,9 +106,15 @@ function validarFecha($fecha)
     return true;
 }
 
-function validarTexto($texto, $campo) //ciudad, pais y direccion
+function validarTexto($texto, $campo, $obligatorio = false) //ciudad, pais, direccion, marca y modelo
 {
-    if ($texto === null || $texto === '') return true; //opcional
+    if ($texto === null || $texto === '') {
+        if ($obligatorio) {
+            return "$campo es obligatorio.";
+        }
+
+        return true; //opcional
+    }
 
     if (!is_string($texto)) {
         return "$campo debe ser texto.";
@@ -204,7 +210,132 @@ function validarEmail($email, PDO $pdo, $existeEnDB = true, $dniActual = null)
     return true;
 }
 
-//VEHICULO
+
+//Valicaciones de Vehiculos
+function validarColor($color){
+    $color = trim($color ?? '');
+
+    if ($color === '') {
+        return true;
+    } //opcional
+
+    $color = strtoupper($color);
+
+    if (!preg_match("/^[A-ZÁÉÍÓÚÑ ]+$/u", $color)) {
+        return "El color solo puede contener letras.";
+    }
+
+    return true;
+}
+
+function validarFechaNoFutura($fecha, $campo)
+{
+    if (empty($fecha)) {
+        return "$campo es obligatorio!";
+    }
+
+    if (!preg_match("/^\d{4}-\d{2}-\d{2}$/", $fecha)) {
+        return "$campo formato no es adecuado";
+    }
+
+    if (strtotime($fecha) > time()) {
+        return "$campo no debe ser futura.";
+    }
+
+    return true;
+}
+
+function validarPlazas($plazas)
+{
+    if ($plazas === null || $plazas === '') {
+        return "Indicar numero plazas es obligatorio";
+    }
+
+    $plazas = (int)$plazas;
+
+    if ($plazas < 2 || $plazas > 9) {
+        return "Las plazas deben estar entre 2 y 9.";
+    }
+
+    return true;
+}
+
+function validarNoNegativo($valor, $campo)
+{
+    if ($valor === null || $valor === '') return "$campo es obligatorio.";
+
+    if (!is_numeric($valor) || $valor < 0) {
+        return "$campo no puede ser negativo.";
+    }
+
+    return true;
+}
+
+function validarMatricula(PDO $pdo, $matricula, $existeEnDB = true, $actual = null)
+{
+
+    if (empty($matricula)) {
+        return "Matricula es obligatoria!";
+    }
+
+    $matricula = strtoupper(str_replace([' ', '-'], '', trim($matricula)));
+
+    $patrones = [
+        "/^[A-Z]\d{4}[A-Z]{4}$/", // A1234ABCD tipo historia
+        "/^[A-Z]\d{4}[A-Z]{2}$/", // A1234AB antigua
+        "/^\d{4}[A-Z]{4}$/"       // 1234ABCD moderna
+    ];
+
+    //validacion
+    $validado = false;
+    foreach ($patrones as $p) {
+        if (preg_match($p, $matricula)) {
+            $validado = true;
+            break;
+        }
+    }
+
+    if (!$validado) {
+        return " introducida no es adecuada";
+    }
+
+    //comprobacion en bd
+    if ($existeEnDB) {
+        $resultado = "SELECT COUNT(*) FROM Vehiculo WHERE matricula = :matricula";
+        if ($actual !== null) $resultado .= " AND matricula != :actual";
+
+        $stmt = $pdo->prepare($resultado);
+        $params = [':matricula' => $matricula];
+
+        if ($actual !== null) $params[':actual'] = $actual;
+
+        $stmt->execute($params);
+
+        if ($stmt->fetchColumn() > 0) {
+            return " ya esta registrada";
+        }
+    }
+
+    return true;
+}
+
+function validarAnio($anio)
+{
+    if (empty($anio)) {
+        return "Año es obligatorio.";
+    }
+
+    $anio = (int)$anio;
+    $actual = (int)date('Y');
+
+    if ($anio > $actual){
+        return "El año no puede ser futuro.";
+    } 
+
+    return true;
+}
+
+//VEHICULO Gestion
 
 function actualizarDisponibilidadVehiculo(&$vehiculo)
 {
@@ -269,22 +400,6 @@ function cambiarEstadoVehiculo(PDO $pdo, &$vehiculo, $nuevoEstado, $dniTrabajado
     registrarHistorialVehiculo($pdo, $vehiculo->matricula, $dniTrabajador, "Cambio de estado a $nombreEstado", $descripcion);
 }
 
-
-function validarMatricula(PDO $pdo, $matricula, $existeEnDB = true)
-{
-    $matricula = strtoupper(str_replace(' ', '', $matricula));
-
-    // Comprobar si ya existe
-    if ($existeEnDB) {
-        $stmt = $pdo->prepare("SELECT COUNT(*) FROM Vehiculo WHERE matricula = :matricula");
-        $stmt->execute([':matricula' => $matricula]);
-        if ($stmt->fetchColumn() > 0) {
-            return "Matricula introducida ya esta registrada.";
-        }
-    }
-
-    return true;
-}
 
 function obtenerFlotaFiltrada(array $get)
 {

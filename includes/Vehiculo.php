@@ -47,10 +47,10 @@ class Vehiculo
         $this->marca = $datos['marca'] ?? '';
         $this->modelo = $datos['modelo'] ?? '';
         $this->anio = $datos['anio'] ?? '';
-        $this->color = $datos['color'] ?? '';
+        $this->color = strtoupper(trim(!empty($datos['color']) ? $datos['color'] : 'INDEFINIDO'));
         $this->numeroPlazas = $datos['numeroPlazas'] ?? 0;
-        $this->tipoPropulsion = $datos['tipoPropulsion'] ?? '';
-        $this->transmision = $datos['transmision'] ?? '';
+        $this->tipoPropulsion = strtoupper(trim($datos['tipoPropulsion'] ?? ''));
+        $this->transmision = strtoupper(trim($datos['transmision'] ?? ''));
         $this->idCategoria = $datos['idCategoria'] ?? null;
         $this->idEstado = $datos['idEstado'] ?? null;
         $this->plazaParking = $datos['plazaParking'] ?? null;
@@ -69,24 +69,18 @@ class Vehiculo
         $this->actualizarDisponibilidad();
     }
 
-    public function actualizarDisponibilidad()
-    {
-        $nombre = self::$estadoNombres[$this->idEstado] ?? '';
-        $this->disponibilidad = in_array($nombre, ['LIMPIO', 'SUCIO', 'IMPRO', 'VENTAS', 'BAJA', 'VENDIDO', 'ALQUILADO']);
-    }
 
-    public function esAlquilable(): bool
-    {
-        return in_array(self::$estadoNombres[$this->idEstado] ?? '', ['LIMPIO', 'SUCIO']);
-    }
-
-    public function esVendible(): bool
-    {
-        return (self::$estadoNombres[$this->idEstado] ?? '') === 'VENTAS';
-    }
 
     public function guardar()
     {
+        $errores = $this->validarVehiculo();
+
+        if (!empty($errores)) {
+            return ['errores' => $errores];
+        }
+
+        $this->actualizarDisponibilidad();
+
         try {
             $stmt = $this->pdo->prepare("
                 UPDATE Vehiculo SET 
@@ -126,9 +120,18 @@ class Vehiculo
         }
     }
 
-    
+
     public function guardarNuevo()
     {
+
+        $errores = $this->validarVehiculo();
+
+        if (!empty($errores)) {
+            return ['errores' => $errores];
+        }
+
+        $this->actualizarDisponibilidad();
+
         try {
             $stmt = $this->pdo->prepare("
             INSERT INTO Vehiculo (
@@ -157,7 +160,7 @@ class Vehiculo
                 ':transmision' => $this->transmision,
                 ':idCategoria' => $this->idCategoria,
                 ':idEstado' => $this->idEstado,
-                ':disponibilidad' => $this->disponibilidad ?? 1,
+                ':disponibilidad' => $this->disponibilidad,
                 ':kmInicial' => $this->kmInicial,
                 ':kmActual' => $this->kmActual,
                 ':fechaUltimaRevision' => $this->fechaUltimaRevision,
@@ -168,7 +171,10 @@ class Vehiculo
                 ':manipuladoPor' => $this->manipuladoPor
             ]);
 
-            return ['exito' => true];
+            //recoge id de vehiculo que acaba de insertar a la bd
+            $idInsertado = $this->pdo->lastInsertId();
+
+            return ['exito' => true, 'idVehiculo' => $idInsertado];
         } catch (PDOException $e) {
             return ['errores' => ['general' => $e->getMessage()]];
         }
@@ -176,8 +182,85 @@ class Vehiculo
 
 
 
+
+
+    public function validarVehiculo($matriculaActual = null)
+    {
+        $errores = [];
+
+
+        $campos = [
+
+            'matricula' => validarMatricula($this->pdo, $this->matricula, true, $matriculaActual),
+            'marca' => validarTexto($this->marca, 'Marca', true),
+            'modelo' => validarTexto($this->modelo, 'Modelo', true),
+            'color' => validarColor($this->color),
+            'numeroPlazas' => validarPlazas($this->numeroPlazas),
+            'kmInicial' => validarNoNegativo($this->kmInicial, 'Kilómetros iniciales'),
+            'precioAdquisicion' => validarNoNegativo($this->precioAdquisicion, 'Precio adquisición'),
+            'fechaUltimaRevision' => validarFechaNoFutura($this->fechaUltimaRevision, 'Fecha última revisión'),
+            'fechaAdquisicion' => validarFechaNoFutura($this->fechaAdquisicion, 'Fecha adquisición'),
+            'anio' => validarAnio($this->anio),
+        ];
+
+        foreach ($campos as $campo => $resultado) {
+            if ($resultado !== true) {
+                $errores[$campo] = $resultado;
+            }
+        }
+
+        // comprobar slects
+        if (empty($this->tipoPropulsion)) {
+            $errores['tipoPropulsion'] = "Indica tipo de propulsion!";
+        }
+
+        if (empty($this->transmision)) {
+            $errores['transmision'] = "Transmision es obligatorio!";
+        }
+
+        if (empty($this->idCategoria)) {
+            $errores['idCategoria'] = "Categoria es obligatoria!";
+        }
+
+        //reglas basicas
+        if (
+            $this->tipoPropulsion === 'ELECTRICO'
+            && $this->transmision !== 'AUTOMATICO'
+        ) {
+            $errores['transmision'] =
+                "Vehiculo electrico solo puede ser Automatico";
+        }
+
+        if ($this->kmActual < $this->kmInicial) {
+            $errores['kmActual'] = "KM actual no puede ser menor que KM inicial";
+        }
+
+        return $errores;
+    }
+
+
+
+
+
+    //Refactorizar en futuro
     public static function obtenerNombreEstado($idEstado)
     {
         return self::$estadoNombres[$idEstado] ?? '';
+    }
+
+    public function actualizarDisponibilidad()
+    {
+        $nombre = self::$estadoNombres[$this->idEstado] ?? '';
+        $this->disponibilidad = in_array($nombre, ['LIMPIO', 'SUCIO', 'IMPRO', 'VENTAS', 'BAJA', 'VENDIDO', 'ALQUILADO']);
+    }
+
+    public function esAlquilable(): bool
+    {
+        return in_array(self::$estadoNombres[$this->idEstado] ?? '', ['LIMPIO', 'SUCIO']);
+    }
+
+    public function esVendible(): bool
+    {
+        return (self::$estadoNombres[$this->idEstado] ?? '') === 'VENTAS';
     }
 }
