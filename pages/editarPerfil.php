@@ -204,7 +204,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         <div class="col-md-6">
                             <label class="form-label">DNI</label>
                             <input type="text" class="form-control"
-                                value="<?= htmlspecialchars($old['dni'] ?? $usuarioDB['dni']) ?>" readonly>
+                                value="<?= htmlspecialchars($old['dni'] ?? $usuarioDB['dni']) ?>" readonly disabled>
 
                             <?php if (!empty($errores['dni'])): ?>
                                 <span class="error" style="color:red">

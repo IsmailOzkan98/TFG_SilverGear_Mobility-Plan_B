@@ -108,14 +108,23 @@ function validarFecha($fecha)
 
 function validarTexto($texto, $campo) //ciudad, pais y direccion
 {
-    if (empty($texto)) return true;
-    if (strlen($texto) < 2) return "$campo demasiado corto.";
+    if ($texto === null || $texto === '') return true; //opcional
+
+    if (!is_string($texto)) {
+        return "$campo debe ser texto.";
+    }
+
+    $texto = trim($texto);
+
     return true;
 }
 
 function validarCodigoPostal($cp)
 {
-    if (empty($cp)) return true; // opcional
+    if ($cp === null || $cp === '') return true; // opcional
+
+    $cp = trim($cp);
+
     if (!preg_match("/^\d{5}$/", $cp)) return "Codigo postal es invalido.";
     return true;
 }
