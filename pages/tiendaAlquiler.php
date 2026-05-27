@@ -275,7 +275,7 @@ $categorias = $pdo->query("SELECT idCategoria, nombreCategoria FROM Categoria OR
                             <?php foreach ($vehiculos as $v): ?>
                                 <div class="col-12 col-sm-6 col-lg-4">
                                     <div class="card h-100 vehicle-card">
-                                        
+
                                         <div class="ratio vehicle-img-ratio" style="--bs-aspect-ratio: 80%;">
                                             <img src="<?= isset($v['imagenPrincipal']) ? '../images/vehiculos/' . htmlspecialchars($v['imagenPrincipal']) : '../images/default-car.jpg' ?>"
                                                 class="img-fluid object-fit-cover"
@@ -334,10 +334,12 @@ $categorias = $pdo->query("SELECT idCategoria, nombreCategoria FROM Categoria OR
                                 </div>
                                 <p class="mb-2">Suscríbete a nuestro boletín para recibir ofertas exclusivas.</p>
                                 <form class="d-flex" role="form">
-                                    <input type="email" class="form-control me-2" placeholder="Tu correo">
-                                    <button type="submit" class="btn btn-custom">Suscribirse</button>
+                                    <input type="email" class="form-control me-2" placeholder="Tu correo" disabled>
+                                    <button type="submit" class="btn btn-custom" disabled>Suscribirse</button>
                                 </form>
+                                <p>*temporalmente deshabilitado</p>
                             </div>
+
                         </div>
 
                         <hr style="border-top:1px solid var(--c-silver); margin:2rem 0 1rem 0;">

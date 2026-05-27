@@ -323,10 +323,12 @@ $compras = $stmt->fetchAll(PDO::FETCH_ASSOC);
                     </div>
                     <p class="mb-2">Suscríbete a nuestro boletín para recibir ofertas exclusivas.</p>
                     <form class="d-flex" role="form">
-                        <input type="email" class="form-control me-2" placeholder="Tu correo">
-                        <button type="submit" class="btn btn-custom">Suscribirse</button>
+                        <input type="email" class="form-control me-2" placeholder="Tu correo" disabled>
+                        <button type="submit" class="btn btn-custom" disabled>Suscribirse</button>
                     </form>
+                    <p>*temporalmente deshabilitado</p>
                 </div>
+
             </div>
 
             <hr style="border-top:1px solid var(--c-silver); margin:2rem 0 1rem 0;">

@@ -286,7 +286,7 @@ $vehiculos = $stmt->fetchAll(PDO::FETCH_ASSOC);
                                         <input type="number" class="form-control" name="km_max" placeholder="Max" value="<?= $_GET['km_max'] ?? '' ?>">
                                     </div>
                                 </div>
-                                
+
                                 <button type="submit" class="btn btn-custom w-100 mb-2">Aplicar filtros</button>
                                 <a href="tiendaComprar.php" class="btn btn-custom w-100">Quitar filtros</a>
                             </form>
@@ -329,7 +329,7 @@ $vehiculos = $stmt->fetchAll(PDO::FETCH_ASSOC);
                                                 <a class="btn btn-custom w-100" href="../dashboard/editarArticuloCompra.php?idVehiculo=<?= $vehiculo['idVehiculo'] ?>">
                                                     Editar articulo
                                                 </a>
-                                                
+
                                             <?php endif; ?>
                                         </div>
                                     </div>
@@ -374,10 +374,13 @@ $vehiculos = $stmt->fetchAll(PDO::FETCH_ASSOC);
                                 </div>
                                 <p class="mb-2">Suscríbete a nuestro boletín para recibir ofertas exclusivas.</p>
                                 <form class="d-flex" role="form">
-                                    <input type="email" class="form-control me-2" placeholder="Tu correo">
-                                    <button type="submit" class="btn btn-custom">Suscribirse</button>
+                                    <input type="email" class="form-control me-2" placeholder="Tu correo" disabled>
+                                    <button type="submit" class="btn btn-custom" disabled>Suscribirse</button>
                                 </form>
+                                <p>*temporalmente deshabilitado</p>
                             </div>
+
+
                         </div>
 
                         <hr style="border-top:1px solid var(--c-silver); margin:2rem 0 1rem 0;">

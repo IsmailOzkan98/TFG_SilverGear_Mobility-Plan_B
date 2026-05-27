@@ -341,75 +341,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     </div>
 
 
-    <!-- <div id="extra-container">
-        <div class="divider"></div>
-
-        <div id="multiCarousel" class="carousel slide" data-bs-ride="carousel">
-            <div class="carousel-inner">
-
-                <div class="carousel-item active">
-                    <div class="d-flex justify-content-center gap-3">
-                        <div class="d-flex flex-column align-items-center">
-                            <img src="../images/0A-Economy.png" class="slider-img" alt="A-Economy">
-                            <label>A-Economy</label>
-                        </div>
-                        <div class="d-flex flex-column align-items-center">
-                            <img src="../images/0B-Compact.png" class="slider-img" alt="B-Compact">
-                            <label>B-Compact</label>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="carousel-item">
-                    <div class="d-flex justify-content-center gap-3">
-                        <div class="d-flex flex-column align-items-center">
-                            <img src="../images/0C-Intermediate.png" class="slider-img" alt="C-Intermediate">
-                            <label>C-Intermediate</label>
-                        </div>
-                        <div class="d-flex flex-column align-items-center">
-                            <img src="../images/0D-SUV.png" class="slider-img" alt="D-SUV">
-                            <label>D-SUV</label>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="carousel-item">
-                    <div class="d-flex justify-content-center gap-3">
-                        <div class="d-flex flex-column align-items-center">
-                            <img src="../images/0E-Premium.png" class="slider-img" alt="E-Premium">
-                            <label>E-Premium</label>
-                        </div>
-                        <div class="d-flex flex-column align-items-center">
-                            <img src="../images/0F-Van.png" class="slider-img" alt="F-Van">
-                            <label>F-Van</label>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="carousel-item">
-                    <div class="d-flex justify-content-center gap-3">
-                        <div class="d-flex flex-column align-items-center">
-                            <img src="../images/0G-Cargo.png" class="slider-img" alt="G-Cargo">
-                            <label>G-Cargo</label>
-                        </div>
-                        <div class="d-flex flex-column align-items-center">
-                            <img src="../images/0H-Classic.png" class="slider-img" alt="H-Classic">
-                            <label>H-Classic</label>
-                        </div>
-                    </div>
-                </div>
-
-            </div>
-
-            <button class="carousel-control-prev" type="button" data-bs-target="#multiCarousel" data-bs-slide="prev">
-                <span class="carousel-control-prev-icon"></span>
-            </button>
-            <button class="carousel-control-next" type="button" data-bs-target="#multiCarousel" data-bs-slide="next">
-                <span class="carousel-control-next-icon"></span>
-            </button>
-        </div>
-    </div> -->
-
 
     <!-- Footer -->
     <footer class="pt-5 pb-3" style="background: var(--c-light); color: var(--c-dark);">
@@ -434,6 +365,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     </nav>
                 </div>
 
+
                 <div class="col-md-4 mb-4">
                     <h5 class="footer-title">Siguenos</h5>
                     <div class="d-flex gap-3 mb-3">
@@ -444,16 +376,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     </div>
                     <p class="mb-2">Suscríbete a nuestro boletín para recibir ofertas exclusivas.</p>
                     <form class="d-flex" role="form">
-                        <input type="email" class="form-control me-2" placeholder="Tu correo">
-                        <button type="submit" class="btn btn-custom">Suscribirse</button>
+                        <input type="email" class="form-control me-2" placeholder="Tu correo" disabled>
+                        <button type="submit" class="btn btn-custom" disabled>Suscribirse</button>
                     </form>
+                    <p>*temporalmente deshabilitado</p>
                 </div>
             </div>
 
-            <hr style="border-top:1px solid var(--c-silver); margin:2rem 0 1rem 0;">
-            <div class="text-center">
-                <p class="mb-0">&copy; 2025 SilverGear Mobility. Sistema de reserva activado.</p>
-            </div>
+        </div>
+
+        <hr style="border-top:1px solid var(--c-silver); margin:2rem 0 1rem 0;">
+        <div class="text-center">
+            <p class="mb-0">&copy; 2025 SilverGear Mobility. Sistema de reserva activado.</p>
+        </div>
         </div>
     </footer>
 
