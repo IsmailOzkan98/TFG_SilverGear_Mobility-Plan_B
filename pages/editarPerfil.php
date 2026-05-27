@@ -31,7 +31,7 @@ unset($_SESSION['errores_editar'], $_SESSION['old_input']);
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
-    $usuario = new Usuario($_POST, $pdo);
+    $usuario = new Usuario($_POST, $pdo, false);
     $usuario->dni = $dni;
 
     $resultado = $usuario->actualizar();
@@ -166,7 +166,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             <div class="bgblock-content d-flex justify-content-center align-items-center" style="min-height: 600px;">
 
                 <div class="glass" style="max-width: 900px; width: 100%;">
+
                     <h1 class="display-5 fw-bold mb-4 text-center">Editar usuario</h1>
+
+                    <?php if (!empty($_SESSION['mensaje'])): ?>
+                        <div class="alert alert-success text-center">
+                            <?= htmlspecialchars($_SESSION['mensaje']) ?>
+                        </div>
+                        <?php unset($_SESSION['mensaje']); ?>
+                    <?php endif; ?>
 
                     <?php if (!empty($errores['general'])): ?>
                         <div class="alert alert-danger">
@@ -287,7 +295,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         <div class="col-md-6">
                             <label class="form-label">Direccion</label>
                             <input type="text" name="direccion" class="form-control"
-                                value="<?= htmlspecialchars($old['direccion'] ?? $usuarioDB['direccion']) ?>" required>
+                                value="<?= htmlspecialchars($old['direccion'] ?? $usuarioDB['direccion']) ?>">
 
                             <?php if (!empty($errores['direccion'])): ?>
                                 <span class="error" style="color:red">
@@ -300,7 +308,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         <div class="col-md-4">
                             <label class="form-label">Ciudad</label>
                             <input type="text" name="ciudad" class="form-control"
-                                value="<?= htmlspecialchars($old['ciudad'] ?? $usuarioDB['ciudad']) ?>" required>
+                                value="<?= htmlspecialchars($old['ciudad'] ?? $usuarioDB['ciudad']) ?>">
 
                             <?php if (!empty($errores['ciudad'])): ?>
                                 <span class="error" style="color:red">
@@ -313,7 +321,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         <div class="col-md-4">
                             <label class="form-label">Pais</label>
                             <input type="text" name="pais" class="form-control"
-                                value="<?= htmlspecialchars($old['pais'] ?? $usuarioDB['pais']) ?>" required>
+                                value="<?= htmlspecialchars($old['pais'] ?? $usuarioDB['pais']) ?>">
 
                             <?php if (!empty($errores['pais'])): ?>
                                 <span class="error" style="color:red">

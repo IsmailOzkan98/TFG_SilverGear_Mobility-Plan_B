@@ -4,6 +4,17 @@ require_once '../includes/common.php';
 require_once '../includes/usuario.php';
 require_once '../includes/security.php';
 
+$pdo = getPDO();
+
+//consulta para obtener roles
+$stmtRoles = $pdo->query("SELECT idRol, nombreRol FROM Rol ORDER BY nombreRol");
+$roles = $stmtRoles->fetchAll(PDO::FETCH_ASSOC);
+
+//para selector de roles
+$rolActual = getUserRole();
+$isAdmin = ($rolActual === 'admin');
+
+
 $errores = $_SESSION['errores_registro'] ?? [];
 $datos = $_SESSION['datos_registro'] ?? [];
 unset($_SESSION['errores_registro'], $_SESSION['datos_registro']);
@@ -13,7 +24,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $pdo = getPDO();
 
     try {
-        $usuario = new Usuario($datos, $pdo);
+        $usuario = new Usuario($datos, $pdo, true);
         $resultado = $usuario->guardar();
 
         if (isset($resultado['exito']) && $resultado['exito'] === true) {
@@ -142,6 +153,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         <div class="divider"></div>
 
     </div>
+
     <div id="main-container">
         <section class="bgblock" style="background-image: url('../images/backgorundRegister.jpg'); max-width: 1400px;">
             <div class="bgblock-content d-flex justify-content-center align-items-center" style="min-height: 500px;">
@@ -153,6 +165,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     <?php endif; ?>
 
                     <form id="formRegistro" class="row g-3" method="POST">
+
                         <?php
                         $campos = [
                             'nombre' => 'Nombre',
@@ -171,20 +184,131 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                             'repetirContrasena' => 'R. Contraseña'
                         ];
 
-                        $contacto = ['nombre', 'apellidos', 'dni', 'fechaNacimiento', 'direccion', 'ciudad', 'pais', 'codigoPostal', 'telefono', 'email', 'fechaCarnet'];
-                        foreach ($contacto as $campo):
-                            $tipo = in_array($campo, ['fechaNacimiento', 'fechaCarnet']) ? 'date' : (in_array($campo, ['email']) ? 'email' : 'text');
+                        $obligatorios = [
+                            'nombre',
+                            'apellidos',
+                            'dni',
+                            'fechaNacimiento',
+                            'telefono',
+                            'email',
+                            'fechaCarnet'
+                        ];
+
+                        $opcionales = [
+                            'direccion',
+                            'ciudad',
+                            'pais',
+                            'codigoPostal'
+                        ];
                         ?>
-                            <div class="col-12 d-flex align-items-center">
-                                <label for="<?= $campo ?>" class="form-label me-2" style="min-width:120px;"><?= $campos[$campo] ?>*</label>
-                                <div style="width:100%">
-                                    <input type="<?= $tipo ?>" class="form-control" id="<?= $campo ?>" name="<?= $campo ?>" value="<?= htmlspecialchars($datos[$campo] ?? '') ?>" placeholder="<?= $campos[$campo] ?>" required>
-                                    <?php if (!empty($errores[$campo])): ?>
-                                        <span class="error" style="color:red"><?= htmlspecialchars($errores[$campo]) ?></span>
-                                    <?php endif; ?>
+
+                        <h4 class="text-center mt-2 mb-3">Datos obligatorios</h4>
+
+                        <div class="row g-3">
+                            <?php foreach ($obligatorios as $campo): ?>
+                                <?php
+                                $tipo = in_array($campo, ['fechaNacimiento', 'fechaCarnet']) ? 'date'
+                                    : (in_array($campo, ['email']) ? 'email' : 'text');
+                                ?>
+
+                                <div class="col-12 d-flex align-items-center">
+                                    <label class="form-label me-2" style="min-width:120px;">
+                                        <?= $campos[$campo] ?>*
+                                    </label>
+
+                                    <div style="width:100%">
+                                        <input type="<?= $tipo ?>"
+                                            class="form-control"
+                                            name="<?= $campo ?>"
+                                            value="<?= htmlspecialchars($datos[$campo] ?? '') ?>"
+                                            required>
+
+                                        <?php if (!empty($errores[$campo])): ?>
+                                            <span class="error" style="color:red">
+                                                <?= htmlspecialchars($errores[$campo]) ?>
+                                            </span>
+                                        <?php endif; ?>
+                                    </div>
+                                </div>
+                            <?php endforeach; ?>
+                        </div>
+
+                        <!-- Selector Rol Solo visible para admin -->
+                        <?php if ($isAdmin): ?>
+
+                            <div class="row g-3">
+                                <div class="col-12 d-flex align-items-center">
+                                    <label class="form-label fw-bold text-warning me-2" style="min-width:120px;">-=Rol=-</label>
+
+                                    <div style="width:100%">
+                                        <select name="idRol" class="form-select">
+                                            <?php foreach ($roles as $rol): ?>
+                                                <option value="<?= $rol['idRol'] ?>"
+                                                    <?= ($datos['idRol'] ?? 2) == $rol['idRol'] ? 'selected' : '' ?>>
+                                                    <?= htmlspecialchars($rol['nombreRol']) ?>
+                                                </option>
+                                            <?php endforeach; ?>
+                                        </select>
+                                    </div>
                                 </div>
                             </div>
-                        <?php endforeach; ?>
+
+                        <?php else: ?>
+
+                            <!-- invitado -->
+                            <input type="hidden" name="idRol" value="2">
+
+                        <?php endif; ?>
+
+                        <div class="row g-3">
+                            <!-- Contraseñas -->
+                            <?php foreach (['contrasena', 'repetirContrasena'] as $campo): ?>
+                                <div class="col-12 d-flex align-items-center">
+                                    <label for="<?= $campo ?>" class="form-label me-2" style="min-width:120px;">
+                                        <?= $campos[$campo] ?>*
+                                    </label>
+
+                                    <div style="width:100%">
+                                        <input type="password"
+                                            class="form-control"
+                                            id="<?= $campo ?>"
+                                            name="<?= $campo ?>"
+                                            required>
+
+                                        <?php if (!empty($errores[$campo])): ?>
+                                            <span class="error" style="color:red">
+                                                <?= htmlspecialchars($errores[$campo]) ?>
+                                            </span>
+                                        <?php endif; ?>
+                                    </div>
+                                </div>
+                            <?php endforeach; ?>
+                        </div>
+
+                        <h4 class="text-center mt-4 mb-3">Datos opcionales</h4>
+
+                        <div class="row g-3">
+                            <?php foreach ($opcionales as $campo): ?>
+                                <div class="col-12 d-flex align-items-center">
+                                    <label class="form-label me-2" style="min-width:120px;">
+                                        <?= $campos[$campo] ?>
+                                    </label>
+
+                                    <div style="width:100%">
+                                        <input type="text"
+                                            class="form-control"
+                                            name="<?= $campo ?>"
+                                            value="<?= htmlspecialchars($datos[$campo] ?? '') ?>">
+
+                                        <?php if (!empty($errores[$campo])): ?>
+                                            <span class="error" style="color:red">
+                                                <?= htmlspecialchars($errores[$campo]) ?>
+                                            </span>
+                                        <?php endif; ?>
+                                    </div>
+                                </div>
+                            <?php endforeach; ?>
+                        </div>
 
                         <!-- Sexo -->
                         <div class="col-12 d-flex align-items-center">
@@ -192,38 +316,31 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                             <div style="width:100%">
                                 <select class="form-control" id="sexo" name="sexo">
                                     <option value="">Selecciona</option>
-                                    <option value="Masculino" <?= (isset($datos['sexo']) && $datos['sexo'] == 'Masculino') ? 'selected' : '' ?>>Masculino</option>
-                                    <option value="Femenino" <?= (isset($datos['sexo']) && $datos['sexo'] == 'Femenino') ? 'selected' : '' ?>>Femenino</option>
-                                    <option value="Otro" <?= (isset($datos['sexo']) && $datos['sexo'] == 'Otro') ? 'selected' : '' ?>>Otro</option>
+                                    <option value="Masculino" <?= ($datos['sexo'] ?? '') == 'Masculino' ? 'selected' : '' ?>>Masculino</option>
+                                    <option value="Femenino" <?= ($datos['sexo'] ?? '') == 'Femenino' ? 'selected' : '' ?>>Femenino</option>
+                                    <option value="Otro" <?= ($datos['sexo'] ?? '') == 'Otro' ? 'selected' : '' ?>>Otro</option>
                                 </select>
+
                                 <?php if (!empty($errores['sexo'])): ?>
-                                    <span class="error" style="color:red"><?= htmlspecialchars($errores['sexo']) ?></span>
+                                    <span class="error" style="color:red">
+                                        <?= htmlspecialchars($errores['sexo']) ?>
+                                    </span>
                                 <?php endif; ?>
                             </div>
                         </div>
-
-                        <!-- Contraseñas -->
-                        <?php foreach (['contrasena', 'repetirContrasena'] as $campo): ?>
-                            <div class="col-12 d-flex align-items-center">
-                                <label for="<?= $campo ?>" class="form-label me-2" style="min-width:120px;"><?= $campos[$campo] ?>*</label>
-                                <div style="width:100%">
-                                    <input type="password" class="form-control" id="<?= $campo ?>" name="<?= $campo ?>" placeholder="<?= $campos[$campo] ?>" required>
-                                    <?php if (!empty($errores[$campo])): ?>
-                                        <span class="error" style="color:red"><?= htmlspecialchars($errores[$campo]) ?></span>
-                                    <?php endif; ?>
-                                </div>
-                            </div>
-                        <?php endforeach; ?>
 
                         <div class="col-12 text-center mt-3">
                             <a href="login.php" class="btn btn-custom">Ya tengo cuenta</a>
                             <button type="submit" class="btn btn-custom">Enviar</button>
                         </div>
+
                     </form>
                 </div>
             </div>
         </section>
     </div>
+
+
     <!-- <div id="extra-container">
         <div class="divider"></div>
 

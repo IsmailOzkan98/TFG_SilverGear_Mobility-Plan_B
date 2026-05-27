@@ -26,7 +26,7 @@ class Usuario
     }
 
 
-    public function __construct($datos, PDO $pdo)
+    public function __construct($datos, PDO $pdo, $requirePassword = true)
     {
         $this->pdo = $pdo;
 
@@ -43,11 +43,16 @@ class Usuario
         $this->email = $datos['email'] ?? '';
         $this->fechaCarnet = $datos['fechaCarnet'] ?? '';
 
-        $this->idRol = 2; // rol cliente por defecto
+        $this->idRol = $datos['idRol'] ?? 2; // rol cliente por defecto
 
-        // Contraseña
-        if (isset($datos['contrasena'], $datos['repetirContrasena'])) {
+        // Solucion para usar mismo constructor en registro y edicion de usuario
+        if ($requirePassword) {
+            if (!isset($datos['contrasena'], $datos['repetirContrasena'])) {
+                throw new Exception("Contraseña obligatoria");
+            }
             $this->setContrasena($datos['contrasena'], $datos['repetirContrasena']);
+        } else {
+            $this->contrasenaHash = null;
         }
     }
 
@@ -133,7 +138,8 @@ class Usuario
         }
     }
 
-    public function actualizar(){
+    public function actualizar()
+    {
         $errores = $this->validar($this->dni);
         if (!empty($errores)) return ['errores' => $errores];
 

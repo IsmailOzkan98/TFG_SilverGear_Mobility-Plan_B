@@ -106,9 +106,9 @@ function validarFecha($fecha)
     return true;
 }
 
-function validarTexto($texto, $campo) //ciudad y pais
+function validarTexto($texto, $campo) //ciudad, pais y direccion
 {
-    if (empty($texto)) return "$campo es obligatorio.";
+    if (empty($texto)) return true;
     if (strlen($texto) < 2) return "$campo demasiado corto.";
     return true;
 }
