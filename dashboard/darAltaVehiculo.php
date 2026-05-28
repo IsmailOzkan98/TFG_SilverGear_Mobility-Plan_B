@@ -106,7 +106,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
 // Consultas para selects
 $categorias = $pdo->query("SELECT idCategoria, nombreCategoria FROM Categoria")->fetchAll();
-$estados = $pdo->query("SELECT idEstado, nombreEstado FROM EstadoVehiculo")->fetchAll();
 $tiposPropulsion = ['Gasolina', 'Diesel', 'Hibrido', 'Electrico'];
 $transmisiones = ['Manual', 'Automatico'];
 ?>
@@ -249,7 +248,7 @@ $transmisiones = ['Manual', 'Automatico'];
 
                         <div class="col-md-3">
                             <label for="fechaAdquisicion" class="form-label">Fecha de adquisición</label>
-                            <input type="date" class="form-control" name="fechaAdquisicion" value="<?= htmlspecialchars($old['fechaAdquision'] ?? '') ?>" placeholder="Fecha adquisición">
+                            <input type="date" class="form-control" name="fechaAdquisicion" value="<?= htmlspecialchars($old['fechaAdquisicion'] ?? '') ?>" placeholder="Fecha adquisición">
                         </div>
 
                         <div class="col-12">

@@ -22,79 +22,60 @@ $vehiculo = new Vehiculo($datosDB, $pdo);
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     try {
+
         $estadoAnterior = $vehiculo->idEstado;
 
-        //Actualizar 
-        $vehiculo->matricula = strtoupper(trim($_POST['matricula']));
-        $vehiculo->marca = strtoupper(trim($_POST['marca']));
-        $vehiculo->modelo = strtoupper(trim($_POST['modelo']));
-        $vehiculo->anio = $_POST['anio'];
-        $vehiculo->color = strtoupper(trim($_POST['color']));
-        $vehiculo->numeroPlazas = $_POST['numeroPlazas'];
-        $vehiculo->tipoPropulsion = $_POST['tipoPropulsion'];
-        $vehiculo->transmision = $_POST['transmision'];
-        $vehiculo->idCategoria = $_POST['idCategoria'];
-        $vehiculo->idEstado = $_POST['idEstado'];
-        $vehiculo->kmActual = $_POST['kmActual'];
-        $vehiculo->fechaUltimaRevision = $_POST['fechaUltimaRevision'] ?? null;
-        $vehiculo->fechaProximaRevision = $vehiculo->fechaUltimaRevision
-            ? date('Y-m-d', strtotime($vehiculo->fechaUltimaRevision . ' +1 year'))
-            : null;
-        $vehiculo->precioAdquisicion = $_POST['precioAdquisicion'];
-        $vehiculo->fechaAdquisicion = $_POST['fechaAdquisicion'];
-        $vehiculo->notasInternas = $_POST['notasInternas'];
-        $vehiculo->manipuladoPor = $_SESSION['usuario']['dni'] ?? null;
-
-        if ($vehiculo->tipoPropulsion === 'Eléctrico' && $vehiculo->transmision !== 'Automático') {
-            throw new Exception("Los vehículos eléctricos solo pueden ser Automáticos.");
-        }
-
-        if ($vehiculo->numeroPlazas < 2 || $vehiculo->numeroPlazas > 9) {
-            throw new Exception("Número de plazas debe estar entre 2 y 9.");
-        }
-
-        if ($estadoAnterior != $vehiculo->idEstado) {
-            cambiarEstadoVehiculo($pdo, $vehiculo, $vehiculo->idEstado, $vehiculo->manipuladoPor);
-        } else {
-            actualizarDisponibilidadVehiculo($vehiculo);
-        }
-
-        $vehiculo->guardar();
-
-        $accion = $estadoAnterior != $vehiculo->idEstado
-            ? "Edicion de vehiculo y cambio de su estado."
-            : "Edicion de vehículo";
-        registrarHistorialVehiculo(
-            $pdo,
-            $vehiculo->matricula,
-            $vehiculo->manipuladoPor,
-            $accion,
-            "Se actualizaron datos generales"
-        );
-
-        //Actualizar
-        $datosDB = [
+        $datos = [
             'matricula' => $vehiculo->matricula,
-            'marca' => $vehiculo->marca,
-            'modelo' => $vehiculo->modelo,
-            'anio' => $vehiculo->anio,
-            'color' => $vehiculo->color,
-            'numeroPlazas' => $vehiculo->numeroPlazas,
-            'tipoPropulsion' => $vehiculo->tipoPropulsion,
-            'transmision' => $vehiculo->transmision,
-            'idCategoria' => $vehiculo->idCategoria,
-            'idEstado' => $vehiculo->idEstado,
+            'marca' => strtoupper(trim($_POST['marca'])),
+            'modelo' => strtoupper(trim($_POST['modelo'])),
+            'anio' => $_POST['anio'],
+            'color' => strtoupper(trim($_POST['color'])),
+            'numeroPlazas' => $_POST['numeroPlazas'],
+            'tipoPropulsion' => $_POST['tipoPropulsion'],
+            'transmision' => $_POST['transmision'],
+            'idCategoria' => $_POST['idCategoria'],
+            'idEstado' => $_POST['idEstado'],
             'kmInicial' => $vehiculo->kmInicial,
-            'kmActual' => $vehiculo->kmActual,
-            'fechaUltimaRevision' => $vehiculo->fechaUltimaRevision,
-            'fechaProximaRevision' => $vehiculo->fechaProximaRevision,
-            'precioAdquisicion' => $vehiculo->precioAdquisicion,
-            'fechaAdquisicion' => $vehiculo->fechaAdquisicion,
-            'notasInternas' => $vehiculo->notasInternas,
-            'disponibilidad' => $vehiculo->disponibilidad
+            'kmActual' => $_POST['kmActual'],
+            'fechaUltimaRevision' => $_POST['fechaUltimaRevision'] ?? null,
+            'fechaProximaRevision' => $_POST['fechaUltimaRevision']
+                ? date('Y-m-d', strtotime($_POST['fechaUltimaRevision'] . ' +1 year'))
+                : null,
+            'precioAdquisicion' => $_POST['precioAdquisicion'],
+            'fechaAdquisicion' => $_POST['fechaAdquisicion'],
+            'notasInternas' => $_POST['notasInternas'],
+            'manipuladoPor' => $_SESSION['usuario']['dni'] ?? null
         ];
 
-        $mensaje = "Vehículo actualizado correctamente.";
+        $vehiculo = new Vehiculo($datos, $pdo);
+
+        $resultado = $vehiculo->guardar();
+
+        if (!empty($resultado['errores'])) {
+            $errores = $resultado['errores'];
+        } else {
+
+            if ($estadoAnterior != $vehiculo->idEstado) {
+                cambiarEstadoVehiculo($pdo, $vehiculo, $vehiculo->idEstado, $vehiculo->manipuladoPor);
+            } else {
+                actualizarDisponibilidadVehiculo($vehiculo);
+            }
+
+            $accion = $estadoAnterior != $vehiculo->idEstado
+                ? "Edicion de vehiculo y cambio de su estado."
+                : "Edicion de vehículo";
+
+            registrarHistorialVehiculo(
+                $pdo,
+                $vehiculo->matricula,
+                $vehiculo->manipuladoPor,
+                $accion,
+                "Se actualizaron datos generales"
+            );
+
+            $mensaje = "Vehículo actualizado correctamente.";
+        }
 
     } catch (Exception $e) {
         $errores['general'] = $e->getMessage();
@@ -124,8 +105,12 @@ $estados = $estados->fetchAll(PDO::FETCH_ASSOC);
 
 
 $categorias = $pdo->query("SELECT idCategoria, nombreCategoria FROM Categoria")->fetchAll();
-$tiposPropulsion = ['Gasolina', 'Diesel', 'Híbrido', 'Eléctrico'];
+
+$tiposPropulsion = ['Gasolina', 'Diesel', 'Hibrido', 'Electrico'];
 $transmisiones = ['Manual', 'Automático'];
+
+$datosDB['tipoPropulsion'] = coincidirOpcion($tiposPropulsion, $datosDB['tipoPropulsion']);
+$datosDB['transmision'] = coincidirOpcion($transmisiones, $datosDB['transmision']);
 
 ?>
 <!DOCTYPE html>

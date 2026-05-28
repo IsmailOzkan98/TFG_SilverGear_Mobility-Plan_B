@@ -515,3 +515,39 @@ function comprobarRetrasoEntrega(string $fechaFin): ?int
 
     return $fin->diff($hoy)->days;
 }
+
+
+//Parches de compatibilidad
+function normalizarValor($valor)
+{
+    $valor = trim(mb_strtoupper($valor, 'UTF-8'));
+
+    $buscar = ['Á','À','Ä','Â','É','È','Ë','Ê','Í','Ì','Ï','Î','Ó','Ò','Ö','Ô','Ú','Ù','Ü','Û','Ñ'];
+    $reemplazar = ['A','A','A','A','E','E','E','E','I','I','I','I','O','O','O','O','U','U','U','U','N'];
+
+    return str_replace($buscar, $reemplazar, $valor);
+}
+
+function normalizarSeleccion(array $opciones, $valorActual)
+{
+    foreach ($opciones as $opcion) {
+        if (normalizarValor($opcion) === normalizarValor($valorActual)) {
+            return $opcion;
+        }
+    }
+
+    return null;
+}
+
+function coincidirOpcion(array $opciones, $valorBD)
+{
+    $valorNormalizado = normalizarValor($valorBD);
+
+    foreach ($opciones as $opcion) {
+        if (normalizarValor($opcion) === $valorNormalizado) {
+            return $opcion; 
+        }
+    }
+
+    return null;
+}

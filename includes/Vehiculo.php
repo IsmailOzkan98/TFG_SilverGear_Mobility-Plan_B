@@ -81,6 +81,8 @@ class Vehiculo
 
         $this->actualizarDisponibilidad();
 
+        
+
         try {
             $stmt = $this->pdo->prepare("
                 UPDATE Vehiculo SET 
@@ -248,6 +250,8 @@ class Vehiculo
         return self::$estadoNombres[$idEstado] ?? '';
     }
 
+
+    //funcion bugueada, temporalmente da siempre true
     public function actualizarDisponibilidad()
     {
         $nombre = self::$estadoNombres[$this->idEstado] ?? '';
