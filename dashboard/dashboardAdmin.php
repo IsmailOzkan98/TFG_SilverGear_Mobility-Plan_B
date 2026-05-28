@@ -149,7 +149,10 @@ $categoriasListado = $stmt->fetchAll(PDO::FETCH_ASSOC);
         <!-- Resumen General -->
         <div class="card mb-4">
             <div class="card-body">
-                <h5 class="card-title mb-3">Resumen General</h5>
+                <div class="d-flex justify-content-between align-items-center">
+                    <h5 class="card-title mb-3">Resumen General</h5>
+                    <h5 class="card-title mb-3"><?= date('Y-m-d H:i:s') ?></h5>
+                </div>
 
                 <div class="row g-3">
                     <div class="col-md-3">
@@ -479,7 +482,7 @@ $categoriasListado = $stmt->fetchAll(PDO::FETCH_ASSOC);
                         <button class="btn btn-primary" onclick="location.href='cerrarContrato.php'">Cerrar Contrato</button>
                         <button class="btn btn-primary" onclick="location.href='cubrirReservas.php'">Cubrir Reservas</button>
                     </div>
-                    
+
 
                 </div>
 
@@ -609,7 +612,7 @@ $categoriasListado = $stmt->fetchAll(PDO::FETCH_ASSOC);
                                     <td>
 
                                         <a href="editarCategoria.php?idCategoria=<?= $cat['idCategoria'] ?>"
-                                        class="btn btn-sm btn-secondary mb-2">
+                                            class="btn btn-sm btn-secondary mb-2">
                                             Editar
                                         </a>
 

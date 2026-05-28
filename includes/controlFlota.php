@@ -2,6 +2,59 @@
 require_once 'common.php';
 require_once 'Vehiculo.php';
 
+
+
+/**
+ * Asigna un vehiculo limpio a la reserva NO CUBIERTA
+ * @param int $idReserva
+ * @return bool
+ */
+function asignarVehiculoAReserva(int $idReserva): bool
+{
+    $pdo = getPDO();
+
+    $stmt = $pdo->prepare("SELECT * FROM Reserva WHERE idReserva = :idReserva");
+    $stmt->execute([':idReserva' => $idReserva]);
+    $reserva = $stmt->fetch(PDO::FETCH_ASSOC);
+
+    if (!$reserva || $reserva['estado'] !== 'NO CUBIERTA') return false;
+
+    if (!fechaPermitida($reserva['fechaInicio'])) return false;
+
+    $vehiculo = getVehiculoCompatible(
+        $pdo,
+        $reserva['marcaSolicitada'] ?? null,
+        $reserva['modeloSolicitado'] ?? null,
+        $reserva['idCategoria'] ?? null
+    );
+
+    if (!$vehiculo) return false;
+
+    // Guardar matrícula en matriculaVehiculo, dejar idVehiculo intacto
+    $stmtUpdate = $pdo->prepare("
+        UPDATE Reserva
+        SET matriculaVehiculo = :matricula, estado = 'CUBIERTA'
+        WHERE idReserva = :idReserva
+    ");
+    $stmtUpdate->execute([
+        ':matricula' => $vehiculo->matricula,
+        ':idReserva' => $idReserva
+    ]);
+
+    // Cambiar estado del vehiculo a ALQUILADO
+    $stmtEstado = $pdo->prepare("SELECT idEstado FROM EstadoVehiculo WHERE nombreEstado = 'ALQUILADO'");
+    $stmtEstado->execute();
+    $idAlquilado = $stmtEstado->fetchColumn();
+
+    cambiarEstadoVehiculo($pdo, $vehiculo, $idAlquilado, $_SESSION['usuario']['dni'] ?? null, "Asignado a reserva $idReserva");
+
+    return true;
+}
+
+
+
+
+
 /**
  * Obtiene un vehiculo compatible con los criterios
  * Prioridad: marca+modelo o cualquier vehiculo de la misma categoria
@@ -56,50 +109,6 @@ function getVehiculoCompatible(PDO $pdo, ?string $marca, ?string $modelo, $idCat
     return null;
 }
 
-/**
- * Asigna un vehiculo limpio a la reserva NO CUBIERTA
- * @param int $idReserva
- * @return bool
- */
-function asignarVehiculoAReserva(int $idReserva): bool
-{
-    $pdo = getPDO();
-
-    $stmt = $pdo->prepare("SELECT * FROM Reserva WHERE idReserva = :idReserva");
-    $stmt->execute([':idReserva' => $idReserva]);
-    $reserva = $stmt->fetch(PDO::FETCH_ASSOC);
-
-    if (!$reserva || $reserva['estado'] !== 'NO CUBIERTA') return false;
-
-    $vehiculo = getVehiculoCompatible(
-        $pdo,
-        $reserva['marcaSolicitada'] ?? null,
-        $reserva['modeloSolicitado'] ?? null,
-        $reserva['idCategoria'] ?? null
-    );
-
-    if (!$vehiculo) return false;
-
-    // Guardar matrícula en matriculaVehiculo, dejar idVehiculo intacto
-    $stmtUpdate = $pdo->prepare("
-        UPDATE Reserva
-        SET matriculaVehiculo = :matricula, estado = 'CUBIERTA'
-        WHERE idReserva = :idReserva
-    ");
-    $stmtUpdate->execute([
-        ':matricula' => $vehiculo->matricula,
-        ':idReserva' => $idReserva
-    ]);
-
-    // Cambiar estado del vehiculo a ALQUILADO
-    $stmtEstado = $pdo->prepare("SELECT idEstado FROM EstadoVehiculo WHERE nombreEstado = 'ALQUILADO'");
-    $stmtEstado->execute();
-    $idAlquilado = $stmtEstado->fetchColumn();
-
-    cambiarEstadoVehiculo($pdo, $vehiculo, $idAlquilado, $_SESSION['usuario']['dni'] ?? null, "Asignado a reserva $idReserva");
-
-    return true;
-}
 
 /**
  * Vincula un vehiculo limpio entregado a la primera reserva NO CUBIERTA compatible
@@ -176,4 +185,20 @@ function intentarCubrirTodasReservas()
     foreach ($reservas as $idReserva) {
         asignarVehiculoAReserva($idReserva);
     }
+}
+
+
+/**
+ * Permite asignación si :
+ * - el dia de inicio
+ * - o 1 dia antes del inicio
+ */
+function fechaPermitida(string $fechaInicioReserva): bool
+{
+    $hoy = date('Y-m-d');
+
+    $inicio = date('Y-m-d', strtotime($fechaInicioReserva));
+    $diaAnterior = date('Y-m-d', strtotime($fechaInicioReserva . ' -1 day'));
+
+    return ($hoy === $inicio || $hoy === $diaAnterior);
 }
