@@ -212,7 +212,8 @@ function validarEmail($email, PDO $pdo, $existeEnDB = true, $dniActual = null)
 
 
 //Valicaciones de Vehiculos
-function validarColor($color){
+function validarColor($color)
+{
     $color = trim($color ?? '');
 
     if ($color === '') {
@@ -328,9 +329,9 @@ function validarAnio($anio)
     $anio = (int)$anio;
     $actual = (int)date('Y');
 
-    if ($anio > $actual){
+    if ($anio > $actual) {
         return "El año no puede ser futuro.";
-    } 
+    }
 
     return true;
 }
@@ -503,7 +504,7 @@ function redirigirSegunRol(?string $rol = null): void
 
 
 
-//comprobar el retraso de entrega
+//Funciones Alquiler
 function comprobarRetrasoEntrega(string $fechaFin): ?int
 {
     $hoy = new DateTime('today');
@@ -517,13 +518,49 @@ function comprobarRetrasoEntrega(string $fechaFin): ?int
 }
 
 
+function validarFechaReserva($fechaInicioInput, $fechaFinInput){
+    $fechaInicio = DateTime::createFromFormat('Y-m-d', $fechaInicioInput);
+    $fechaFin    = DateTime::createFromFormat('Y-m-d', $fechaFinInput);
+    $fechaActual = new DateTime('today');
+
+    //validacion
+    if (!$fechaInicio || !$fechaFin) {
+        return "Formato invalido";
+    }
+
+    //control de fecha pasado
+    if ($fechaInicio < $fechaActual) {
+        return "La fecha de inicio no puede ser anterior a " . $fechaActual->format('Y-m-d') . ".";
+    }
+
+    if ($fechaFin < $fechaActual) {
+        return "La fecha de fin no puede ser anterior a " . $fechaActual->format('Y-m-d') . ".";
+    }
+
+    //control fin no sea anterio a incio
+    if ($fechaInicio > $fechaFin) {
+        return "La fecha de inicio no puede ser posterior a la fecha fin.";
+    }
+
+    //control de duracion
+    $duracionMax = $fechaInicio->diff($fechaFin);
+    $dias = (int)$duracionMax->days + 1;
+
+    if ($dias > 365) {
+        return "Duracion maxima permitida es de 1 año";
+    }
+
+    return true;
+}
+
+
 //Parches de compatibilidad
 function normalizarValor($valor)
 {
     $valor = trim(mb_strtoupper($valor, 'UTF-8'));
 
-    $buscar = ['Á','À','Ä','Â','É','È','Ë','Ê','Í','Ì','Ï','Î','Ó','Ò','Ö','Ô','Ú','Ù','Ü','Û','Ñ'];
-    $reemplazar = ['A','A','A','A','E','E','E','E','I','I','I','I','O','O','O','O','U','U','U','U','N'];
+    $buscar = ['Á', 'À', 'Ä', 'Â', 'É', 'È', 'Ë', 'Ê', 'Í', 'Ì', 'Ï', 'Î', 'Ó', 'Ò', 'Ö', 'Ô', 'Ú', 'Ù', 'Ü', 'Û', 'Ñ'];
+    $reemplazar = ['A', 'A', 'A', 'A', 'E', 'E', 'E', 'E', 'I', 'I', 'I', 'I', 'O', 'O', 'O', 'O', 'U', 'U', 'U', 'U', 'N'];
 
     return str_replace($buscar, $reemplazar, $valor);
 }
@@ -545,7 +582,7 @@ function coincidirOpcion(array $opciones, $valorBD)
 
     foreach ($opciones as $opcion) {
         if (normalizarValor($opcion) === $valorNormalizado) {
-            return $opcion; 
+            return $opcion;
         }
     }
 

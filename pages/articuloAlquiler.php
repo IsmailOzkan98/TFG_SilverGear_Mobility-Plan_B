@@ -165,6 +165,9 @@ if (!$imagenPrincipal) {
     </div>
 
     <div class="container my-5">
+
+
+
         <div class="row">
 
             <!-- Imagen principal -->
@@ -186,6 +189,14 @@ if (!$imagenPrincipal) {
                     <?php if ($vehiculo['disponibilidad']): ?>
                         <form id="formReserva" class="mt-4" method="POST" action="../includes/crear_reserva.php">
                             <input type="hidden" name="idVehiculo" value="<?= $vehiculo['idVehiculo'] ?>">
+
+                            <!-- Mensaje Error -->
+                            <?php if (!empty($_SESSION['error_reserva'])): ?>
+                                <div class="alert alert-danger">
+                                    <?= htmlspecialchars($_SESSION['error_reserva']) ?>
+                                </div>
+                                <?php unset($_SESSION['error_reserva']); ?>
+                            <?php endif; ?>
 
                             <div class="mb-3">
                                 <label class="form-label">Fecha inicio</label>

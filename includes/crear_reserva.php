@@ -7,10 +7,11 @@ require_once '../includes/controlFlota.php';
 $pdo = getPDO();
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+
     $idVehiculo      = $_POST['idVehiculo'];
     $idCategoria     = $_POST['idCategoria'];
     $marcaSolicitada = $_POST['marcaSolicitada'];
-    $modeloSolicitado= $_POST['modeloSolicitado'];
+    $modeloSolicitado = $_POST['modeloSolicitado'];
     $fechaInicio     = $_POST['fechaInicio'];
     $fechaFin        = $_POST['fechaFin'];
     $precioDia       = $_POST['precioDia'];
@@ -18,6 +19,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $seguro          = isset($_POST['seguro']) ? 1 : 0;
     $carnetJoven     = isset($_POST['carnetJoven']) ? 1 : 0;
     $idUsuario       = $_SESSION['usuario']['idUsuario'];
+
+
+    //Validacion
+    $validacionFechas = validarFechaReserva($fechaInicio, $fechaFin);
+
+    if ($validacionFechas !== true) {
+        $_SESSION['error_reserva'] = $validacionFechas;
+        header("Location: ../pages/articuloAlquiler.php?idVehiculo=" . $idVehiculo);
+        exit;
+    }
 
     $stmt = $pdo->prepare("
         INSERT INTO Reserva 
@@ -27,8 +38,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     ");
 
 
-
-    
 
     $stmt->execute([
         ':idUsuario'    => $idUsuario,
