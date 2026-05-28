@@ -254,7 +254,7 @@ $transmisiones = ['Manual', 'Automatico'];
 
                         <div class="col-12">
                             <label for="notasInternas" class="form-label">Notas internas</label>
-                            <textarea class="form-control" name="notasInternas" value="<?= htmlspecialchars($old['notasInternas'] ?? '') ?>" placeholder="Notas internas"></textarea>
+                            <textarea class="form-control" name="notasInternas" placeholder="Notas internas"><?= htmlspecialchars($old['notasInternas'] ?? '') ?></textarea>
                         </div>
 
                         <div class="col-12 d-flex gap-4">
@@ -262,7 +262,7 @@ $transmisiones = ['Manual', 'Automatico'];
                                 Solamente Alta
                             </button>
 
-                            <button type="submit" name="accion" value="vender" class="btn btn-success mt-3">
+                            <button type="submit" name="accion" value="vender" class="btn btn-primary mt-3">
                                 Alta y Vender
                             </button>
                         </div>

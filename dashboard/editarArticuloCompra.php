@@ -129,7 +129,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     Guardar cambios
                 </button>
 
-                <a href="articuloCompra.php?idVehiculo=<?= $vehiculo['idVehiculo'] ?>"
+                <a href="../pages/tiendaComprar.php"
                    class="btn btn-secondary ms-2">
                     Cancelar
                 </a>

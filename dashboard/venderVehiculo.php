@@ -5,8 +5,24 @@ requireRole(['admin', 'mecanico', 'ventas']);
 require_once '../includes/Vehiculo.php';
 
 $pdo = getPDO();
-$mensaje = '';
+
+//manejo de mensajes
 $errores = [];
+$imagenesErrores = false;
+$erroresImagenesTexto = [];
+
+$mensajeExito = $_SESSION['mensaje_exito'] ?? '';
+unset($_SESSION['mensaje_exito']);
+
+$mensajeError = $_SESSION['mensaje_error'] ?? '';
+unset($_SESSION['mensaje_error']);
+
+$erroresForm = $_SESSION['errores_alta_vehiculo'] ?? [];
+unset($_SESSION['errores_alta_vehiculo']);
+
+//datos de input
+$old = $_SESSION['old_input_vehiculo'] ?? [];
+unset($_SESSION['old_input_vehiculo']);
 
 //Obtener vh
 $idVehiculo = $_GET['idVehiculo'] ?? null;
@@ -28,54 +44,108 @@ $matriculaRuta = preg_replace('/[^A-Z0-9\-]/i', '_', $matricula);
 
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    try {
-        $vehiculo->notasInternas = $_POST['notasInternas'] ?? $vehiculo->notasInternas;
 
-        $vehiculo->precioVenta = $_POST['precioVenta'] ?? $vehiculo->precioVenta;
-        $stmt = $pdo->prepare("UPDATE Vehiculo SET precioVenta = :precioVenta WHERE idVehiculo = :idVehiculo");
-        $stmt->execute([
-            ':precioVenta' => $vehiculo->precioVenta,
-            ':idVehiculo' => $idVehiculo
-        ]);
+    $vehiculo->notasInternas = $_POST['notasInternas'] ?? $vehiculo->notasInternas;
 
-        $vehiculo->manipuladoPor = $_SESSION['usuario']['dni'] ?? null;
+    //precio y su validacion
+    $vehiculo->precioVenta = $_POST['precioVenta'] ?? $vehiculo->precioVenta;
+    $validacionPrecio = validarNoNegativo($vehiculo->precioVenta, 'Precio venta');
+    if ($validacionPrecio !== true) {
+        $errores['precioVenta'] = $validacionPrecio;
+    }
+
+    if (!empty($errores)) {
+        $_SESSION['errores_alta_vehiculo'] = $errores;
+        $_SESSION['old_input_vehiculo'] = $_POST;
+        header("Location: " . $_SERVER['REQUEST_URI']);
+        exit;
+    }
+
+    $stmt = $pdo->prepare("
+            UPDATE Vehiculo 
+            SET precioVenta = :precioVenta,
+                notasInternas = :notasInternas
+            WHERE idVehiculo = :idVehiculo
+        ");
+
+    $stmt->execute([
+        ':precioVenta' => $vehiculo->precioVenta,
+        ':notasInternas' => $vehiculo->notasInternas,
+        ':idVehiculo' => $idVehiculo
+    ]);
+
+    $vehiculo->manipuladoPor = $_SESSION['usuario']['dni'] ?? null;
 
 
-        $stmtEstado = $pdo->prepare("SELECT idEstado FROM EstadoVehiculo WHERE nombreEstado='VENTAS'");
-        $stmtEstado->execute();
-        $idVentas = $stmtEstado->fetchColumn();
-        if (!$idVentas) throw new Exception("ERROR: Estado VENTAS no encontrado");
+    $stmtEstado = $pdo->prepare("SELECT idEstado FROM EstadoVehiculo WHERE nombreEstado='VENTAS'");
+    $stmtEstado->execute();
+    $idVentas = $stmtEstado->fetchColumn();
+    if (!$idVentas) {
+        die("ERROR: Estado VENTAS no encontrado");
+    }
 
 
-        cambiarEstadoVehiculo($pdo, $vehiculo, $idVentas, $vehiculo->manipuladoPor, $vehiculo->notasInternas);
+    cambiarEstadoVehiculo($pdo, $vehiculo, $idVentas, $vehiculo->manipuladoPor, $vehiculo->notasInternas);
 
-        //subida de las imagenes
-        if (!empty($_FILES['imagenes']['name'][0])) {
-            $carpetaDestino = '../images/Ventas/' . $matriculaRuta . '/';
-            if (!is_dir($carpetaDestino)) mkdir($carpetaDestino, 0755, true);
+    //subida de las imagenes
+    if (!empty($_FILES['imagenes']['name'][0])) {
 
-            $archivos = $_FILES['imagenes'];
-            for ($i = 0; $i < count($archivos['name']); $i++) {
-                $nombreArchivo = basename($archivos['name'][$i]);
-                $rutaDestino = $carpetaDestino . time() . '_' . $nombreArchivo;
+        //donde se guarda y si no lo crea
+        $carpetaDestino = '../images/Ventas/' . $matriculaRuta . '/';
+        if (!is_dir($carpetaDestino)) mkdir($carpetaDestino, 0755, true);
 
-                if (move_uploaded_file($archivos['tmp_name'][$i], $rutaDestino)) {
-                    $stmtImg = $pdo->prepare("
-                        INSERT INTO Vehiculo_Imagenes (idVehiculo, rutaImagen) 
-                        VALUES (:idVehiculo, :rutaImagen)
-                    ");
-                    $stmtImg->execute([
-                        ':idVehiculo' => $idVehiculo,
-                        ':rutaImagen' => $rutaDestino
-                    ]);
-                }
+        $archivos = $_FILES['imagenes'];
+
+        for ($i = 0; $i < count($archivos['name']); $i++) {
+
+            $nombreArchivo = basename($archivos['name'][$i]);
+
+            //obtener datos basicos
+            $tmp = $archivos['tmp_name'][$i];
+            $size = $archivos['size'][$i];
+
+            //obtener extension y comprobarla
+            $ext = strtolower(pathinfo($nombreArchivo, PATHINFO_EXTENSION));
+
+            if (!in_array($ext, ['jpg', 'jpeg', 'png'])) {
+                $imagenesErrores = true;
+                $erroresImagenesTexto[] = "Archivo '$nombreArchivo' no es JPG o PNG.";
+                continue;
+            }
+
+            //verificar peso 
+            if ($size > 20 * 1024 * 1024) {
+                $imagenesErrores = true;
+                $erroresImagenesTexto[] = "Archivo '$nombreArchivo' supera los 20MB.";
+                continue;
+            }
+
+            $rutaDestino = $carpetaDestino . time() . '_' . $nombreArchivo; //genera nombre unico usando timestamp
+
+
+            //moverlo a server y asociar ruta con el vehiculo
+            if (move_uploaded_file($tmp, $rutaDestino)) {
+                $stmtImg = $pdo->prepare("
+                INSERT INTO Vehiculo_Imagenes (idVehiculo, rutaImagen) 
+                VALUES (:idVehiculo, :rutaImagen)
+            ");
+
+                $stmtImg->execute([
+                    ':idVehiculo' => $idVehiculo,
+                    ':rutaImagen' => $rutaDestino
+                ]);
             }
         }
-
-        $mensaje = "Vehículo puesto a la venta e imágenes subidas correctamente!";
-    } catch (Exception $e) {
-        $errores['general'] = $e->getMessage();
     }
+
+    $_SESSION['mensaje_exito'] = "Vehículo puesto a la venta correctamente.";
+
+    if ($imagenesErrores) {
+        $_SESSION['mensaje_error'] = implode("<br>", $erroresImagenesTexto);
+    }
+
+    header("Location: " . $_SERVER['REQUEST_URI']);
+    exit;
 }
 
 //imagenes actuales
@@ -114,16 +184,23 @@ $imagenes = $stmtImgs->fetchAll(PDO::FETCH_ASSOC);
             <div class="card-body">
                 <h1 class="mb-4">Poner Vehículo a la Venta</h1>
 
-                <?php if ($mensaje): ?>
-                    <div class="alert alert-success"><?= htmlspecialchars($mensaje) ?></div>
+                <?php if ($mensajeExito): ?>
+                    <div class="alert alert-success">
+                        <?= $mensajeExito ?>
+                    </div>
                 <?php endif; ?>
-                <?php if ($errores): ?>
+
+                <?php if ($mensajeError): ?>
+                    <div class="alert alert-warning">
+                        <?= $mensajeError ?>
+                    </div>
+                <?php endif; ?>
+
+                <?php if (!empty($erroresForm)): ?>
                     <div class="alert alert-danger">
-                        <ul class="mb-0">
-                            <?php foreach ($errores as $campo => $error): ?>
-                                <li><?= htmlspecialchars("$campo: $error") ?></li>
-                            <?php endforeach; ?>
-                        </ul>
+                        <?php foreach ($erroresForm as $error): ?>
+                            <div><?= htmlspecialchars($error) ?></div>
+                        <?php endforeach; ?>
                     </div>
                 <?php endif; ?>
 
@@ -131,38 +208,38 @@ $imagenes = $stmtImgs->fetchAll(PDO::FETCH_ASSOC);
                     <div class="row g-3">
                         <div class="col-md-6">
                             <label class="form-label">Matrícula</label>
-                            <input type="text" class="form-control" value="<?= htmlspecialchars($datosDB['matricula']) ?>" readonly>
+                            <input type="text" class="form-control" value="<?= htmlspecialchars($datosDB['matricula']) ?>" readonly disabled>
                         </div>
                         <div class="col-md-6">
                             <label class="form-label">Marca</label>
-                            <input type="text" class="form-control" value="<?= htmlspecialchars($datosDB['marca']) ?>" readonly>
+                            <input type="text" class="form-control" value="<?= htmlspecialchars($datosDB['marca']) ?>" readonly disabled>
                         </div>
                         <div class="col-md-6">
                             <label class="form-label">Modelo</label>
-                            <input type="text" class="form-control" value="<?= htmlspecialchars($datosDB['modelo']) ?>" readonly>
+                            <input type="text" class="form-control" value="<?= htmlspecialchars($datosDB['modelo']) ?>" readonly disabled>
                         </div>
                         <div class="col-md-6">
                             <label class="form-label">Estado actual</label>
-                            <input type="text" class="form-control" value="<?= Vehiculo::obtenerNombreEstado($vehiculo->idEstado) ?>" readonly>
+                            <input type="text" class="form-control" value="<?= Vehiculo::obtenerNombreEstado($vehiculo->idEstado) ?>" readonly disabled>
                         </div>
 
                         <div class="col-md-6">
                             <label class="form-label">Precio de venta (€)</label>
-                            <input type="number" step="0.01" class="form-control" name="precioVenta" value="<?= htmlspecialchars($vehiculo->precioVenta ?? '') ?>">
+                            <input type="number" step="0.01" class="form-control" name="precioVenta" value="<?= htmlspecialchars($old['precioVenta'] ?? $vehiculo->precioVenta ?? '') ?>">
                         </div>
 
                         <div class="col-md-6">
                             <label class="form-label">Precio de adquisicion (€)</label>
-                            <input type="number" class="form-control" value="<?= htmlspecialchars($vehiculo->precioAdquisicion) ?>" readonly>
+                            <input type="number" class="form-control" value="<?= htmlspecialchars($vehiculo->precioAdquisicion) ?>" readonly disabled>
                         </div>
 
                         <div class="col-12">
                             <label class="form-label">Notas internas</label>
-                            <textarea class="form-control" name="notasInternas"><?= htmlspecialchars($vehiculo->notasInternas) ?></textarea>
+                            <textarea class="form-control" name="notasInternas"><?= htmlspecialchars($old['notasInternas'] ?? $vehiculo->notasInternas) ?></textarea>
                         </div>
 
                         <div class="col-12">
-                            <label class="form-label">Subir imágenes del vehículo</label>
+                            <label class="form-label">Subir imagenes del vehiculo (JPG, PNG)</label>
                             <input type="file" class="form-control" name="imagenes[]" multiple>
                         </div>
 
@@ -178,7 +255,7 @@ $imagenes = $stmtImgs->fetchAll(PDO::FETCH_ASSOC);
                         <?php endif; ?>
 
                         <div class="col-12">
-                            <button type="submit" class="btn btn-success mt-3">Poner a la venta</button>
+                            <button type="submit" class="btn btn-primary mt-3">Poner a la venta</button>
                         </div>
                     </div>
                 </form>
